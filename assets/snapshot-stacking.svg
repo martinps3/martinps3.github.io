@@ -1,0 +1,103 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 350" width="720" height="350"
+     font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, Roboto, sans-serif"
+     role="img" aria-label="Three monthly snapshots stacked into one table, showing the same claim repeated three times">
+
+  <text x="10" y="18" font-size="12" font-weight="650" fill="#5b646e" letter-spacing="0.5">EACH MONTH, A FULL EXPORT IS APPENDED</text>
+
+  <!-- snapshot 1 -->
+  <text x="10" y="48" font-size="12.5" font-weight="620" fill="#1F3864">Jan export</text>
+  <rect x="10" y="56" width="184" height="66" rx="6" fill="#ffffff" stroke="#c9d3e0" stroke-width="1.4"/>
+  <line x1="10" y1="78" x2="194" y2="78" stroke="#e3e7ec"/>
+  <text x="20" y="72" font-size="11" font-weight="600" fill="#5b646e">ClaimId</text>
+  <text x="96" y="72" font-size="11" font-weight="600" fill="#5b646e">Status</text>
+  <text x="152" y="72" font-size="11" font-weight="600" fill="#5b646e">Amt</text>
+
+  <text x="20" y="94" font-size="11.5" font-family="ui-monospace, Consolas, monospace" fill="#b0452f">C-1001</text>
+  <text x="96" y="94" font-size="11.5" fill="#16191d">Open</text>
+  <text x="152" y="94" font-size="11.5" fill="#16191d">4,200</text>
+
+  <text x="20" y="112" font-size="11.5" font-family="ui-monospace, Consolas, monospace" fill="#16191d">C-1002</text>
+  <text x="96" y="112" font-size="11.5" fill="#16191d">Open</text>
+  <text x="152" y="112" font-size="11.5" fill="#16191d">1,150</text>
+
+  <!-- snapshot 2 -->
+  <text x="222" y="48" font-size="12.5" font-weight="620" fill="#1F3864">Feb export</text>
+  <rect x="222" y="56" width="184" height="66" rx="6" fill="#ffffff" stroke="#c9d3e0" stroke-width="1.4"/>
+  <line x1="222" y1="78" x2="406" y2="78" stroke="#e3e7ec"/>
+  <text x="232" y="72" font-size="11" font-weight="600" fill="#5b646e">ClaimId</text>
+  <text x="308" y="72" font-size="11" font-weight="600" fill="#5b646e">Status</text>
+  <text x="364" y="72" font-size="11" font-weight="600" fill="#5b646e">Amt</text>
+
+  <text x="232" y="94" font-size="11.5" font-family="ui-monospace, Consolas, monospace" fill="#b0452f">C-1001</text>
+  <text x="308" y="94" font-size="11.5" fill="#16191d">Open</text>
+  <text x="364" y="94" font-size="11.5" fill="#16191d">4,200</text>
+
+  <text x="232" y="112" font-size="11.5" font-family="ui-monospace, Consolas, monospace" fill="#16191d">C-1002</text>
+  <text x="308" y="112" font-size="11.5" fill="#16191d">Paid</text>
+  <text x="364" y="112" font-size="11.5" fill="#16191d">1,150</text>
+
+  <!-- snapshot 3 -->
+  <text x="434" y="48" font-size="12.5" font-weight="620" fill="#1F3864">Mar export</text>
+  <rect x="434" y="56" width="184" height="66" rx="6" fill="#ffffff" stroke="#c9d3e0" stroke-width="1.4"/>
+  <line x1="434" y1="78" x2="618" y2="78" stroke="#e3e7ec"/>
+  <text x="444" y="72" font-size="11" font-weight="600" fill="#5b646e">ClaimId</text>
+  <text x="520" y="72" font-size="11" font-weight="600" fill="#5b646e">Status</text>
+  <text x="576" y="72" font-size="11" font-weight="600" fill="#5b646e">Amt</text>
+
+  <text x="444" y="94" font-size="11.5" font-family="ui-monospace, Consolas, monospace" fill="#b0452f">C-1001</text>
+  <text x="520" y="94" font-size="11.5" fill="#16191d">Paid</text>
+  <text x="576" y="94" font-size="11.5" fill="#16191d">4,200</text>
+
+  <text x="640" y="96" font-size="22" fill="#c9d3e0">…</text>
+
+  <!-- converging arrows -->
+  <path d="M 102 130 L 300 168" stroke="#8b949e" stroke-width="1.3" fill="none"/>
+  <path d="M 314 130 L 314 168" stroke="#8b949e" stroke-width="1.3" fill="none"/>
+  <path d="M 526 130 L 330 168" stroke="#8b949e" stroke-width="1.3" fill="none"/>
+  <polygon points="314,176 309,166 319,166" fill="#8b949e"/>
+
+  <!-- stacked result -->
+  <text x="10" y="200" font-size="12" font-weight="650" fill="#5b646e" letter-spacing="0.5">ONE FLAT TABLE</text>
+
+  <rect x="10" y="210" width="440" height="118" rx="6" fill="#fffbfa" stroke="#e0b9b0" stroke-width="1.5"/>
+  <line x1="10" y1="232" x2="450" y2="232" stroke="#efdcd7"/>
+  <text x="22" y="226" font-size="11" font-weight="600" fill="#5b646e">SnapshotMonth</text>
+  <text x="140" y="226" font-size="11" font-weight="600" fill="#5b646e">ClaimId</text>
+  <text x="230" y="226" font-size="11" font-weight="600" fill="#5b646e">Status</text>
+  <text x="310" y="226" font-size="11" font-weight="600" fill="#5b646e">Amount</text>
+
+  <text x="22"  y="248" font-size="11.5" font-family="ui-monospace, Consolas, monospace" fill="#5b646e">2025-01</text>
+  <text x="140" y="248" font-size="11.5" font-family="ui-monospace, Consolas, monospace" fill="#b0452f">C-1001</text>
+  <text x="230" y="248" font-size="11.5" fill="#16191d">Open</text>
+  <text x="310" y="248" font-size="11.5" fill="#16191d">4,200</text>
+
+  <text x="22"  y="266" font-size="11.5" font-family="ui-monospace, Consolas, monospace" fill="#5b646e">2025-01</text>
+  <text x="140" y="266" font-size="11.5" font-family="ui-monospace, Consolas, monospace" fill="#16191d">C-1002</text>
+  <text x="230" y="266" font-size="11.5" fill="#16191d">Open</text>
+  <text x="310" y="266" font-size="11.5" fill="#16191d">1,150</text>
+
+  <text x="22"  y="284" font-size="11.5" font-family="ui-monospace, Consolas, monospace" fill="#5b646e">2025-02</text>
+  <text x="140" y="284" font-size="11.5" font-family="ui-monospace, Consolas, monospace" fill="#b0452f">C-1001</text>
+  <text x="230" y="284" font-size="11.5" fill="#16191d">Open</text>
+  <text x="310" y="284" font-size="11.5" fill="#16191d">4,200</text>
+
+  <text x="22"  y="302" font-size="11.5" font-family="ui-monospace, Consolas, monospace" fill="#5b646e">2025-02</text>
+  <text x="140" y="302" font-size="11.5" font-family="ui-monospace, Consolas, monospace" fill="#16191d">C-1002</text>
+  <text x="230" y="302" font-size="11.5" fill="#16191d">Paid</text>
+  <text x="310" y="302" font-size="11.5" fill="#16191d">1,150</text>
+
+  <text x="22"  y="320" font-size="11.5" font-family="ui-monospace, Consolas, monospace" fill="#5b646e">2025-03</text>
+  <text x="140" y="320" font-size="11.5" font-family="ui-monospace, Consolas, monospace" fill="#b0452f">C-1001</text>
+  <text x="230" y="320" font-size="11.5" fill="#16191d">Paid</text>
+  <text x="310" y="320" font-size="11.5" fill="#16191d">4,200</text>
+
+  <!-- callout -->
+  <rect x="472" y="210" width="238" height="118" rx="8" fill="#ffffff" stroke="#e3e7ec"/>
+  <text x="488" y="234" font-size="12.5" font-weight="620" fill="#b0452f">C-1001 counted 3×</text>
+  <text x="488" y="258" font-size="12" fill="#5b646e">COUNTROWS = 5</text>
+  <text x="488" y="276" font-size="12" fill="#16191d">actual claims = 2</text>
+  <line x1="488" y1="288" x2="694" y2="288" stroke="#e3e7ec"/>
+  <text x="488" y="306" font-size="12" fill="#5b646e">SUM(Amount) = 14,900</text>
+  <text x="488" y="322" font-size="12" fill="#16191d">actual total = 5,350</text>
+
+</svg>

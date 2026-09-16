@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 300" width="720" height="300"
+     font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, Roboto, sans-serif"
+     role="img" aria-label="A SQL file goes in, structured documentation comes out: output columns with lineage, source tables, joins and filters">
+
+  <defs>
+    <marker id="a2" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#8b949e"/>
+    </marker>
+  </defs>
+
+  <text x="10" y="18" font-size="12" font-weight="650" fill="#5b646e" letter-spacing="0.5">300 LINES OF SQL</text>
+
+  <rect x="10" y="32" width="196" height="238" rx="8" fill="#f6f8fa" stroke="#c9d3e0" stroke-width="1.4"/>
+  <text x="26" y="56" font-size="10.5" font-family="ui-monospace, Consolas, monospace" fill="#6b7785">WITH monthly_orders AS (</text>
+  <text x="26" y="74" font-size="10.5" font-family="ui-monospace, Consolas, monospace" fill="#6b7785">  SELECT o.order_id,</text>
+  <text x="26" y="92" font-size="10.5" font-family="ui-monospace, Consolas, monospace" fill="#6b7785">    DATE_TRUNC('month',</text>
+  <text x="26" y="110" font-size="10.5" font-family="ui-monospace, Consolas, monospace" fill="#6b7785">      o.order_date) AS ...</text>
+  <text x="26" y="128" font-size="10.5" font-family="ui-monospace, Consolas, monospace" fill="#6b7785">  FROM sales.orders o</text>
+  <text x="26" y="146" font-size="10.5" font-family="ui-monospace, Consolas, monospace" fill="#6b7785">  WHERE o.status &lt;&gt; ...</text>
+  <text x="26" y="164" font-size="10.5" font-family="ui-monospace, Consolas, monospace" fill="#6b7785">), order_revenue AS (</text>
+  <text x="26" y="182" font-size="10.5" font-family="ui-monospace, Consolas, monospace" fill="#6b7785">  SELECT SUM(oi.qty *</text>
+  <text x="26" y="200" font-size="10.5" font-family="ui-monospace, Consolas, monospace" fill="#6b7785">    oi.unit_price) AS ...</text>
+  <text x="26" y="218" font-size="10.5" font-family="ui-monospace, Consolas, monospace" fill="#6b7785">  GROUP BY oi.order_id</text>
+  <text x="26" y="236" font-size="10.5" font-family="ui-monospace, Consolas, monospace" fill="#6b7785">) SELECT mo.order_month,</text>
+  <text x="26" y="254" font-size="10.5" font-family="ui-monospace, Consolas, monospace" fill="#c0c8d2">  ...</text>
+
+  <line x1="220" y1="150" x2="268" y2="150" stroke="#8b949e" stroke-width="1.5" marker-end="url(#a2)"/>
+  <text x="244" y="141" text-anchor="middle" font-size="10.5" fill="#5b646e">sqldoc</text>
+
+  <text x="284" y="18" font-size="12" font-weight="650" fill="#1F3864" letter-spacing="0.5">SOMETHING A HUMAN CAN READ</text>
+
+  <rect x="284" y="32" width="426" height="238" rx="8" fill="#ffffff" stroke="#1F3864" stroke-width="1.6"/>
+
+  <text x="302" y="56" font-size="12" font-weight="620" fill="#16191d">Reads from</text>
+  <text x="302" y="74" font-size="11" font-family="ui-monospace, Consolas, monospace" fill="#5b646e">sales.orders · sales.order_items · sales.customers</text>
+
+  <line x1="302" y1="86" x2="692" y2="86" stroke="#e3e7ec"/>
+
+  <text x="302" y="106" font-size="12" font-weight="620" fill="#16191d">Output columns</text>
+
+  <text x="302" y="126" font-size="10.5" font-weight="600" fill="#8b949e">COLUMN</text>
+  <text x="430" y="126" font-size="10.5" font-weight="600" fill="#8b949e">COMES FROM</text>
+  <text x="620" y="126" font-size="10.5" font-weight="600" fill="#8b949e">NOTES</text>
+
+  <text x="302" y="144" font-size="10.5" font-family="ui-monospace, Consolas, monospace" fill="#16191d">order_month</text>
+  <text x="430" y="144" font-size="10.5" font-family="ui-monospace, Consolas, monospace" fill="#5b646e">monthly_orders</text>
+
+  <text x="302" y="162" font-size="10.5" font-family="ui-monospace, Consolas, monospace" fill="#16191d">category</text>
+  <text x="430" y="162" font-size="10.5" font-family="ui-monospace, Consolas, monospace" fill="#1F3864">sales.products</text>
+
+  <text x="302" y="180" font-size="10.5" font-family="ui-monospace, Consolas, monospace" fill="#16191d">order_count</text>
+  <text x="430" y="180" font-size="10.5" font-family="ui-monospace, Consolas, monospace" fill="#5b646e">monthly_orders</text>
+  <text x="620" y="180" font-size="10" fill="#7a8694">aggregated</text>
+
+  <text x="302" y="198" font-size="10.5" font-family="ui-monospace, Consolas, monospace" fill="#16191d">revenue_band</text>
+  <text x="430" y="198" font-size="10.5" font-family="ui-monospace, Consolas, monospace" fill="#5b646e">order_revenue</text>
+  <text x="620" y="198" font-size="10" fill="#7a8694">CASE logic</text>
+
+  <line x1="302" y1="212" x2="692" y2="212" stroke="#e3e7ec"/>
+
+  <text x="302" y="232" font-size="12" font-weight="620" fill="#16191d">Filters</text>
+  <text x="302" y="250" font-size="10.5" font-family="ui-monospace, Consolas, monospace" fill="#5b646e">c.region IS NOT NULL</text>
+
+  <text x="302" y="284" font-size="10.5" fill="#8b949e">alias p resolved back to sales.products, not reported as "p"</text>
+
+</svg>

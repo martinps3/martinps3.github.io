@@ -82,9 +82,57 @@ Total Amount = SUM( Claims[Amount] )    -- 14,900, should be 5,350
 </code></pre>
 
   <p>
-    Worse, the error compounds. A "claims over time" chart shows a confident upward trend that's
-    purely the table getting taller each month. I've seen that chart presented as a genuine business
-    trend. It's a very convincing artefact.
+    Two claims is easy to eyeball. The problem is that nobody is looking at two claims — and the gap
+    grows every month the export runs. Drag this:
+  </p>
+
+  <div class="sn">
+    <div class="sn-top">
+      <label for="sn-slider">Months of exports appended</label>
+      <input type="range" id="sn-slider" min="1" max="12" value="1">
+      <span id="sn-months">1 month</span>
+    </div>
+
+    <div class="sn-grid">
+      <div class="sn-cell bad">
+        <span class="k">Claim count on the dashboard</span>
+        <span class="v" id="sn-rows">0</span>
+        <span class="sub">COUNTROWS over the flat table</span>
+      </div>
+      <div class="sn-cell good">
+        <span class="k">Claims that actually exist</span>
+        <span class="v" id="sn-distinct">0</span>
+        <span class="sub">distinct ClaimId</span>
+      </div>
+      <div class="sn-cell bad">
+        <span class="k">Total value reported</span>
+        <span class="v" id="sn-naiveSum">$0</span>
+        <span class="sub">SUM over every row</span>
+      </div>
+      <div class="sn-cell good">
+        <span class="k">Real total value</span>
+        <span class="v" id="sn-realSum">$0</span>
+        <span class="sub">one row per claim</span>
+      </div>
+    </div>
+
+    <div id="sn-chart"></div>
+
+    <p class="sn-foot">
+      40 synthetic claims opening and resolving over a year. At one month the numbers agree — which
+      is exactly why this passes review on the day it's built.
+    </p>
+  </div>
+
+  <p>
+    That last point is the trap. On day one the flat table is correct, because there's only one
+    snapshot in it. The report gets signed off, and the error accrues quietly from month two onward.
+  </p>
+
+  <p>
+    Worse, the error compounds in a specific direction. A "claims over time" chart shows a confident
+    upward trend that's purely the table getting taller each month. I've seen that chart presented as
+    a genuine business trend. It's a very convincing artefact.
   </p>
 
   <h2>Confirming it in one query</h2>
@@ -314,5 +362,6 @@ RETURN
   </div>
 </footer>
 
+<script src="assets/snapshot-demo.js"></script>
 </body>
 </html>

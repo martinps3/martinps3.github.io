@@ -58,6 +58,29 @@
     </figcaption>
   </figure>
 
+  <h2>Try it</h2>
+
+  <p>
+    This is the real parser, ported to JavaScript and running in your browser — nothing is sent
+    anywhere. Paste your own query over the example, or pick one of the presets. Hover an output
+    column in the diagram to trace it back to its source.
+  </p>
+
+  <div class="pg">
+    <div class="pg-bar">
+      <span class="lbl">Example</span>
+      <span id="pg-tabs"></span>
+    </div>
+    <textarea id="pg-input" spellcheck="false" aria-label="SQL input"></textarea>
+    <div class="pg-chips" id="pg-chips"></div>
+    <div id="pg-graph"></div>
+    <div class="pg-body" id="pg-output"></div>
+  </div>
+
+  <p class="pg-cap">
+    Parses locally, so feel free to paste something real — it never leaves the page.
+  </p>
+
   <h2>What it does</h2>
 
   <p>
@@ -202,5 +225,7 @@ SELECT wherever FROM t         -- keyword as a substring
   </div>
 </footer>
 
+<script src="assets/sqldoc.js"></script>
+<script src="assets/playground.js"></script>
 </body>
 </html>

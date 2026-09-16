@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 340" width="720" height="340"
+     font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, Roboto, sans-serif"
+     role="img" aria-label="Two columns: tasks where agents reliably help in a Power BI repo, and tasks where they consistently fail">
+
+  <rect x="8" y="30" width="336" height="298" rx="10" fill="#f9fdfa" stroke="#bcd9c6" stroke-width="1.5"/>
+  <text x="24" y="20" font-size="12" font-weight="650" fill="#2f6b46" letter-spacing="0.5">HOLDS UP</text>
+
+  <text x="28" y="58" font-size="13" font-weight="620" fill="#16191d">Measure authoring</text>
+  <text x="28" y="76" font-size="11.5" fill="#5b646e">with model access. Without it, fiction.</text>
+
+  <text x="28" y="106" font-size="13" font-weight="620" fill="#16191d">Bulk edits across visual JSON</text>
+  <text x="28" y="124" font-size="11.5" fill="#5b646e">40 files, one rule, applied consistently.</text>
+
+  <text x="28" y="154" font-size="13" font-weight="620" fill="#16191d">Impact analysis</text>
+  <text x="28" y="172" font-size="11.5" fill="#5b646e">"what references this column?"</text>
+
+  <text x="28" y="202" font-size="13" font-weight="620" fill="#16191d">Documentation</text>
+  <text x="28" y="220" font-size="11.5" fill="#5b646e">data dictionaries, query summaries.</text>
+
+  <text x="28" y="250" font-size="13" font-weight="620" fill="#16191d">SQL translation</text>
+  <text x="28" y="268" font-size="11.5" fill="#5b646e">dialect to dialect, with tests.</text>
+
+  <line x1="28" y1="288" x2="324" y2="288" stroke="#cfe4d6"/>
+  <text x="28" y="308" font-size="11.5" fill="#2f6b46">Common thread: text in, text out, verifiable.</text>
+
+  <rect x="376" y="30" width="336" height="298" rx="10" fill="#fffbfa" stroke="#e8c4bd" stroke-width="1.5"/>
+  <text x="392" y="20" font-size="12" font-weight="650" fill="#a4453a" letter-spacing="0.5">DOESN'T</text>
+
+  <text x="396" y="58" font-size="13" font-weight="620" fill="#16191d">Visual layout</text>
+  <text x="396" y="76" font-size="11.5" fill="#5b646e">x/y/width/height by hand. Always wrong.</text>
+
+  <text x="396" y="106" font-size="13" font-weight="620" fill="#16191d">Anything with a GUID</text>
+  <text x="396" y="124" font-size="11.5" fill="#5b646e">lineage tags, logical IDs. Duplicates break sync.</text>
+
+  <text x="396" y="154" font-size="13" font-weight="620" fill="#16191d">Matching an existing look</text>
+  <text x="396" y="172" font-size="11.5" fill="#5b646e">"make it like that one" needs the JSON diffed.</text>
+
+  <text x="396" y="202" font-size="13" font-weight="620" fill="#16191d">Service-side behaviour</text>
+  <text x="396" y="220" font-size="11.5" fill="#5b646e">refresh, gateways, themes. Invisible to it.</text>
+
+  <text x="396" y="250" font-size="13" font-weight="620" fill="#16191d">Deciding the grain</text>
+  <text x="396" y="268" font-size="11.5" fill="#5b646e">a modelling judgement, not a lookup.</text>
+
+  <line x1="396" y1="288" x2="692" y2="288" stroke="#efdcd7"/>
+  <text x="396" y="308" font-size="11.5" fill="#a4453a">Common thread: no feedback loop to check against.</text>
+
+</svg>

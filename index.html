@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Martin Padilla Schekaiban — Business Intelligence Developer</title>
+<meta name="description" content="Business Intelligence Developer specialising in Power BI semantic models, Snowflake, DAX and AI-assisted analytics tooling.">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<header class="site">
+  <div class="wrap">
+    <a class="name" href="index.html">Martin Padilla Schekaiban</a>
+    <nav>
+      <a href="#work">Work</a>
+      <a href="#skills">Skills</a>
+      <a href="#contact">About</a>
+    </nav>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <div class="hero">
+    <h1>Business Intelligence Developer</h1>
+    <p class="lede">
+      I build the reporting layer operations teams actually run on — Snowflake SQL and Python through
+      to Power BI semantic models, DAX and paginated reports. Lately a lot of my time goes on the
+      tooling around that work: connecting AI agents to semantic models so the model becomes
+      something an agent can read and verify against, rather than guess at.
+    </p>
+    <div class="meta">
+      <span>6+ years in supply chain &amp; logistics analytics</span>
+      <span>·</span>
+      <span>Mexico</span>
+      <span>·</span>
+      <a href="https://www.linkedin.com/in/martinschekaiban/">LinkedIn</a>
+    </div>
+  </div>
+
+  <section id="work">
+    <h2 class="section">Writing &amp; projects</h2>
+
+    <a class="project" href="sqldoc.html">
+      <span class="tag">Project</span>
+      <span class="when">September 2026 · 5 min</span>
+      <h3>sqldoc — explaining a report without reading the SQL</h3>
+      <p>
+        "What's actually in this report?" is the question I get asked most, and answering it properly
+        means tracing 300 lines of SQL by hand. A zero-dependency Python tool that does it instead:
+        output columns with their lineage, source tables, joins, filters.
+      </p>
+      <span class="stack">Python · SQL parsing · CLI · 29 tests</span>
+    </a>
+    <a class="project" href="mcp-power-bi.html">
+      <span class="tag">Article</span>
+      <span class="when">September 2026 · 8 min</span>
+      <h3>Giving an AI agent read access to a Power BI semantic model</h3>
+      <p>
+        Your coding assistant keeps writing DAX against columns that don't exist, and the fix isn't a
+        better prompt. Exposing a tabular model over MCP — what to surface, how to keep a large model
+        inside a context window, and why I'd keep it read-only.
+      </p>
+      <span class="stack">MCP · Power BI · TMDL · DAX · Python</span>
+    </a>
+
+    <a class="project" href="star-schema.html">
+      <span class="tag">Article</span>
+      <span class="when">September 2026 · 7 min</span>
+      <h3>The snapshot table that quietly triples your numbers</h3>
+      <p>
+        A monthly export appended to a table for eighteen months, now powering a dashboard the
+        business checks every Monday. Every metric on it is inflated, and every metric still looks
+        reasonable. How to catch it and how to reshape it.
+      </p>
+      <span class="stack">Dimensional modelling · Power BI · DAX · SQL</span>
+    </a>
+
+  </section>
+
+  <section id="skills">
+    <h2 class="section">Skills</h2>
+    <div class="skill-row">
+      <b>Business Intelligence</b> —
+      <span>Power BI (Desktop, Service, Fabric), DAX, Power Query, semantic model and star schema
+      design, performance tuning, SSRS paginated reports (RDL)</span>
+    </div>
+    <div class="skill-row">
+      <b>AI &amp; agentic tooling</b> —
+      <span>Model Context Protocol (MCP) servers, agentic coding workflows, custom agent and skill
+      authoring, prompt and context engineering</span>
+    </div>
+    <div class="skill-row">
+      <b>Data &amp; SQL</b> —
+      <span>Snowflake, SQL, SSMS, ETL pipelines, data warehousing, reconciliation, query tuning</span>
+    </div>
+    <div class="skill-row">
+      <b>Programming</b> —
+      <span>Python (pandas), automated documentation and metadata generation, Git</span>
+    </div>
+    <div class="skill-row">
+      <b>Domain</b> —
+      <span>Transportation and freight analytics — service performance (OTD/OTP), carrier scorecards,
+      freight claims, billing reconciliation</span>
+    </div>
+  </section>
+
+  <section id="contact">
+    <h2 class="section">About</h2>
+    <div class="about">
+      <div class="initials">MP</div>
+      <div>
+        <p>
+          I'm a BI developer at a global logistics provider, working on reporting for a manufacturing
+          account across North America and EMEA. Most days that means Power BI semantic models,
+          Snowflake SQL and SSRS, plus the internal tooling that keeps all of it maintainable.
+        </p>
+        <p>
+          <a href="https://www.linkedin.com/in/martinschekaiban/"
+             style="color:var(--accent);text-decoration:none">LinkedIn</a>
+          <span style="color:var(--faint)"> · </span>
+          <a href="https://github.com/martinps3"
+             style="color:var(--accent);text-decoration:none">GitHub</a>
+        </p>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<footer class="site">
+  <div class="wrap">
+    Built as a static site — no framework, no build step.
+  </div>
+</footer>
+
+</body>
+</html>

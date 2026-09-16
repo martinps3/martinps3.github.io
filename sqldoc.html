@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>sqldoc — explaining a SQL report without reading the SQL</title>
+<meta name="description" content="A zero-dependency Python tool that turns a SQL file into plain-language documentation: output columns with lineage, source tables, joins and filters.">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<header class="site">
+  <div class="wrap">
+    <a class="name" href="index.html">Martin Padilla Schekaiban</a>
+    <nav>
+      <a href="index.html#work">Writing</a>
+      <a href="index.html#skills">Skills</a>
+      <a href="index.html#contact">About</a>
+    </nav>
+  </div>
+</header>
+
+<div class="wrap">
+<a class="back" href="index.html">← Back</a>
+
+<article>
+  <h1>sqldoc: explaining a report without reading the SQL</h1>
+  <p class="sub">
+    A small tool for the question I get asked more than any other.
+  </p>
+  <div class="byline">
+    September 2026 <span class="dot">·</span> Python, SQL, tooling <span class="dot">·</span> 5 min read
+    <span class="dot">·</span>
+    <a href="https://github.com/martinps3/sqldoc" style="color:var(--accent);text-decoration:none">Source on GitHub</a>
+  </div>
+
+  <p>
+    The most common question I get isn't technical. It's "what's actually in this report?" — usually
+    from a scrum master sizing a change, or an analyst checking whether a number they've been handed
+    means what they think it means.
+  </p>
+
+  <p>
+    Answering it properly means opening 300 lines of SQL, tracing where each output column came from,
+    and translating that into a sentence. It takes fifteen minutes and interrupts whatever I was
+    doing. Multiply by a reporting portfolio of any size and it becomes a real tax.
+  </p>
+
+  <p>
+    So I wrote something to answer it for me.
+  </p>
+
+  <figure>
+    <img src="assets/sqldoc-flow.svg" alt="A SQL file with CTEs goes in; structured documentation comes out listing source tables, output columns with their lineage, and filters.">
+    <figcaption>
+      <b>Point it at a .sql file, get back what the report does.</b> The useful part is the middle
+      column — where each output field actually comes from, with aliases resolved.
+    </figcaption>
+  </figure>
+
+  <h2>What it does</h2>
+
+  <p>
+    Given a query, it reports the output columns and the expression behind each one, the base tables
+    it reads (CTEs and subqueries excluded, which matters more than it sounds), the joins with their
+    conditions, the filters, and the grain — <code>GROUP BY</code>, <code>DISTINCT</code>, row limits.
+    Output is Markdown for people or JSON for anything else.
+  </p>
+
+  <p>
+    The part I care about most is alias resolution. Most queries alias everything to single letters,
+    so a naive tool tells you <code>category</code> comes from <code>p</code>. Useless. Resolving that
+    back to <code>sales.products</code> is what makes the output worth reading:
+  </p>
+
+<pre><code>| Column         | Comes from                     | Notes             |
+| -------------- | ------------------------------ | ----------------- |
+| order_month    | monthly_orders.order_month     |                   |
+| category       | sales.products.category_name   |                   |
+| order_count    | monthly_orders.order_id        | aggregated        |
+| revenue_band   | order_revenue.gross_revenue    | conditional logic |
+</code></pre>
+
+  <h2>Why I didn't use a parser library</h2>
+
+  <p>
+    If you're building something serious, use <a href="https://github.com/tobymao/sqlglot">sqlglot</a>.
+    It has a real grammar, handles dialects properly, and does lineage. I'm not pretending to
+    compete with it.
+  </p>
+
+  <p>
+    I went zero-dependency for a specific reason: a lot of corporate BI environments are locked down
+    hard enough that <code>pip install</code> isn't a thing you can rely on. A tool that runs on a
+    bare Python install is a tool that actually gets used. That constraint turned out to be a design
+    input rather than an obstacle.
+  </p>
+
+  <p>
+    What it costs is coverage, and I'd rather be upfront about that than oversell it.
+  </p>
+
+  <h3>The bit that's actually hard</h3>
+
+  <p>
+    Splitting a query into clauses sounds trivial until you try it. All of these will break a naive
+    <code>.split(",")</code> or a regex for <code>WHERE</code>:
+  </p>
+
+<pre><code>SELECT 'a, b'  AS label        -- comma inside a string literal
+SELECT fn(a, b) AS x           -- comma inside a function call
+SELECT * FROM (
+    SELECT 1 WHERE z = 1       -- WHERE belonging to a subquery
+) s WHERE a = 1
+SELECT col -- WHERE is not here
+FROM t
+SELECT wherever FROM t         -- keyword as a substring
+</code></pre>
+
+  <p>
+    So the core is a scanner that walks the string tracking bracket depth and whether it's inside a
+    literal, and only splits at depth zero outside quotes. Everything else builds on that. It's about
+    a hundred lines and it's the reason the rest of the tool can stay simple.
+  </p>
+
+  <p>
+    That's also where the tests are concentrated — 29 of them, and the ones that earn their keep are
+    the nasty inputs above rather than the happy path.
+  </p>
+
+  <h3>One bug worth mentioning</h3>
+
+  <p>
+    My word-boundary check rejected any separator that already contained whitespace. Splitting a
+    <code>WHERE</code> clause on <code>" and "</code> silently returned one condition instead of two,
+    because the character after the separator is legitimately the start of the next token — the check
+    was asking for a non-alphanumeric character that could never be there.
+  </p>
+
+  <p>
+    It only surfaced because a test asserted a filter count rather than just checking the thing
+    didn't throw. A test that had asserted "returns a list" would have passed happily and shipped
+    wrong documentation, which for a tool like this is worse than crashing.
+  </p>
+
+  <h2>What it won't do</h2>
+
+  <ul>
+    <li><code>INSERT</code>, <code>UPDATE</code>, <code>MERGE</code> — reporting queries only</li>
+    <li><code>UNION</code> branches aren't split out separately</li>
+    <li><code>SELECT *</code> stays opaque; expanding it needs a schema it doesn't have</li>
+    <li>Deeply nested correlated subqueries get summarised rather than traced</li>
+  </ul>
+
+  <p>
+    It's built to say less rather than guess. A documentation tool that invents lineage is worse than
+    no tool at all, because people believe it.
+  </p>
+
+  <h2>Where it goes next</h2>
+
+  <p>
+    The JSON output is the interesting half. Once a query's structure is machine-readable you can put
+    it behind a search index, feed it into a data catalogue, or hand it to an LLM as grounding — which
+    connects directly to
+    <a href="mcp-power-bi.html">the MCP work</a>: same principle, different layer. Give the model the
+    facts instead of letting it guess.
+  </p>
+
+  <div class="note">
+    <p>
+      Written from scratch on public example SQL. No employer queries, schema or data were used.
+      Code is on <a href="https://github.com/martinps3/sqldoc">GitHub</a> under MIT.
+    </p>
+  </div>
+
+</article>
+
+<section>
+  <div class="about">
+    <div class="initials">MP</div>
+    <div>
+      <p>
+        I'm Martin — a BI developer working mostly in Power BI, Snowflake and SSRS on supply chain
+        reporting. I write here now and then about modelling problems and the tooling I build around
+        them.
+      </p>
+      <p>
+        <a href="https://www.linkedin.com/in/martinschekaiban/" style="color:var(--accent);text-decoration:none">LinkedIn</a>
+        <span style="color:var(--faint)"> · </span>
+        <a href="index.html" style="color:var(--accent);text-decoration:none">More writing</a>
+      </p>
+    </div>
+  </div>
+</section>
+
+</div>
+
+<footer class="site">
+  <div class="wrap">
+    <a href="index.html">← All work</a>
+  </div>
+</footer>
+
+</body>
+</html>

@@ -224,7 +224,8 @@
     }
 
     h.push('<h4 class="pg-h">Output columns</h4>');
-    h.push('<table class="pg-table"><tr><th>Column</th><th>Comes from</th><th>Notes</th></tr>');
+    h.push('<div class="table-scroll" role="region" aria-label="Output columns" tabindex="0">' +
+           '<table class="pg-table"><tr><th>Column</th><th>Comes from</th><th>Notes</th></tr>');
     f.output_columns.forEach(function (c) {
       var src = c.sources.length
         ? c.sources.map(function (s) { return "<code>" + esc(s) + "</code>"; }).join(" ")
@@ -232,17 +233,18 @@
       h.push("<tr><td><code>" + esc(c.name) + "</code></td><td>" + src + "</td><td>" +
              (c.note ? '<span class="pg-note">' + esc(c.note) + "</span>" : "") + "</td></tr>");
     });
-    h.push("</table>");
+    h.push("</table></div>");
 
     if (f.joins.length) {
       h.push('<h4 class="pg-h">Joins</h4>');
-      h.push('<table class="pg-table"><tr><th>Type</th><th>Table</th><th>On</th></tr>');
+      h.push('<div class="table-scroll" role="region" aria-label="Joins" tabindex="0">' +
+             '<table class="pg-table"><tr><th>Type</th><th>Table</th><th>On</th></tr>');
       f.joins.forEach(function (j) {
         h.push("<tr><td>" + esc(j.kind.toUpperCase()) + "</td><td><code>" + esc(j.target) +
                "</code></td><td>" + (j.condition ? "<code>" + esc(j.condition) + "</code>" :
                '<span class="pg-dim">&mdash;</span>') + "</td></tr>");
       });
-      h.push("</table>");
+      h.push("</table></div>");
     }
 
     if (f.filters.length) {

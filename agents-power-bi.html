@@ -8,11 +8,12 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
+<a class="skip-link" href="#main">Skip to content</a>
 
 <header class="site">
   <div class="wrap">
-    <a class="name" href="index.html">Martin Padilla Schekaiban</a>
-    <nav>
+    <a class="name" href="index.html"><span class="brand-mark" aria-hidden="true">MP</span>Martin Padilla Schekaiban</a>
+    <nav aria-label="Main navigation">
       <a href="index.html#work">Work</a>
       <a href="index.html#skills">Skills</a>
       <a href="index.html#contact">About</a>
@@ -20,10 +21,11 @@
   </div>
 </header>
 
-<div class="wrap">
-<a class="back" href="index.html">← Back</a>
+<main class="wrap reading" id="main">
+<a class="back" href="index.html#work">← All writing &amp; projects</a>
 
 <article>
+  <p class="eyebrow">Field notes / Agentic workflows</p>
   <h1>What AI agents are actually good and bad at in a Power BI repo</h1>
   <p class="sub">
     A year in. Some of it stuck, a lot of it didn't, and the split isn't where I expected.
@@ -46,8 +48,11 @@
   </p>
 
   <figure>
-    <img src="assets/agent-strengths.svg" alt="Left column: tasks that hold up - measure authoring with model access, bulk edits across visual JSON, impact analysis, documentation, SQL translation. Right column: tasks that don't - visual layout, anything with a GUID, matching an existing look, service-side behaviour, deciding the grain.">
+    <div class="figure-scroll" role="region" aria-label="Agent strengths and limitations diagram" tabindex="0">
+      <img src="assets/agent-strengths.svg" alt="Left column: tasks that hold up - measure authoring with model access, bulk edits across visual JSON, impact analysis, documentation, SQL translation. Right column: tasks that don't - visual layout, anything with a GUID, matching an existing look, service-side behaviour, deciding the grain.">
+    </div>
     <figcaption>
+      <span class="scroll-hint">Scroll horizontally to see the full diagram.</span>
       <b>The split turned out to be about feedback, not difficulty.</b> Anything the agent can check
       its own work against goes well. Anything it can't, doesn't.
     </figcaption>
@@ -265,7 +270,7 @@
   </div>
 </section>
 
-</div>
+</main>
 
 <footer class="site">
   <div class="wrap">

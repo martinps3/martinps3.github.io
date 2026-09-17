@@ -7,12 +7,13 @@
 <meta name="description" content="Business Intelligence Developer specialising in Power BI semantic models, Snowflake, DAX and AI-assisted analytics tooling.">
 <link rel="stylesheet" href="assets/style.css">
 </head>
-<body>
+<body class="home">
+<a class="skip-link" href="#main">Skip to content</a>
 
 <header class="site">
   <div class="wrap">
-    <a class="name" href="index.html">Martin Padilla Schekaiban</a>
-    <nav>
+    <a class="name" href="index.html"><span class="brand-mark" aria-hidden="true">MP</span>Martin Padilla Schekaiban</a>
+    <nav aria-label="Main navigation">
       <a href="#work">Work</a>
       <a href="#skills">Skills</a>
       <a href="#contact">About</a>
@@ -20,31 +21,61 @@
   </div>
 </header>
 
-<div class="wrap">
+<main class="wrap" id="main">
 
-  <div class="hero">
-    <h1>Business Intelligence Developer</h1>
-    <p class="lede">
-      I build the reporting layer operations teams actually run on — Snowflake SQL and Python through
-      to Power BI semantic models, DAX and paginated reports. Lately a lot of my time goes on the
-      tooling around that work: connecting AI agents to semantic models so the model becomes
-      something an agent can read and verify against, rather than guess at.
-    </p>
-    <div class="meta">
-      <span>6+ years in supply chain &amp; logistics analytics</span>
-      <span>·</span>
-      <span>Mexico</span>
-      <span>·</span>
-      <a href="https://www.linkedin.com/in/martinschekaiban/">LinkedIn</a>
+  <section class="hero" aria-labelledby="hero-title">
+    <div class="hero-copy">
+      <p class="eyebrow">Business Intelligence Developer</p>
+      <h1 id="hero-title">I'm Martin.<br><span>I build useful BI.</span></h1>
+      <p class="lede">
+        I build the reporting layer operations teams actually run on — from Snowflake SQL and Python
+        to Power BI semantic models, DAX and paginated reports.
+      </p>
+      <p class="hero-detail">
+        Lately, I'm connecting AI agents to semantic models — giving them something to read and
+        verify against, rather than guess at.
+      </p>
+      <div class="hero-actions">
+        <a class="button button-primary" href="#work">Writing &amp; projects <span aria-hidden="true">↓</span></a>
+        <a class="text-link" href="https://www.linkedin.com/in/martinschekaiban/">Connect on LinkedIn <span aria-hidden="true">↗</span></a>
+      </div>
+      <div class="meta">
+        <span>6+ years in supply chain &amp; logistics analytics</span>
+        <span class="location">Based in Mexico</span>
+      </div>
     </div>
-  </div>
+
+    <aside class="approach" aria-labelledby="approach-title">
+      <div class="approach-heading">
+        <h2 class="eyebrow" id="approach-title">How I approach a model</h2>
+      </div>
+      <div class="model-map" aria-hidden="true">
+        <div class="model-sources"><span>SQL</span><span>Python</span><span>Snowflake</span></div>
+        <div class="model-core">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="m12 3 9 5-9 5-9-5 9-5Z M3 12l9 5 9-5 M3 16l9 5 9-5"/>
+          </svg>
+          <span>Semantic model</span>
+        </div>
+        <div class="model-outputs"><span>Reporting</span><span>AI agents</span></div>
+      </div>
+      <ol class="approach-steps">
+        <li><span class="step-number">01</span><div><h3>Get the grain right</h3><p>Know what one row actually means.</p></div></li>
+        <li><span class="step-number">02</span><div><h3>Make the logic readable</h3><p>Models and measures people can follow.</p></div></li>
+        <li><span class="step-number">03</span><div><h3>Check the result</h3><p>Reconcile the numbers before publishing.</p></div></li>
+      </ol>
+    </aside>
+  </section>
 
   <section id="work">
-    <h2 class="section">Writing &amp; projects</h2>
+    <div class="section-heading">
+      <div><p class="eyebrow">Notes &amp; experiments</p><h2 class="section">Writing &amp; projects</h2></div>
+      <p>Things I've built, tried, and learned.</p>
+    </div>
 
+    <div class="project-grid">
     <a class="project" href="agents-power-bi.html">
-      <span class="tag">Article</span>
-      <span class="when">September 2026 · 9 min</span>
+      <div class="project-top"><span class="tag">Field notes</span><span class="project-number" aria-hidden="true">01</span></div>
       <h3>What AI agents are actually good and bad at in a Power BI repo</h3>
       <p>
         A year of agentic development against a PBIP/TMDL repository. Bulk-editing forty visual JSON
@@ -52,11 +83,11 @@
         worked once. The split isn't about difficulty — it's about feedback.
       </p>
       <span class="stack">Power BI · PBIP · TMDL · Git · agentic workflows</span>
+      <div class="project-bottom"><span class="when">September 2026 · 9 min read</span><span class="project-action">Read article <span aria-hidden="true">→</span></span></div>
     </a>
 
-    <a class="project" href="sqldoc.html">
-      <span class="tag">Project · live demo</span>
-      <span class="when">September 2026 · 5 min</span>
+    <a class="project project-demo" href="sqldoc.html">
+      <div class="project-top"><span class="tag">Project · live demo</span><span class="project-number" aria-hidden="true">02</span></div>
       <h3>sqldoc — explaining a report without reading the SQL</h3>
       <p>
         "What's actually in this report?" is the question I get asked most, and answering it properly
@@ -64,10 +95,10 @@
         <strong>with a live version on the page: paste a query, see its lineage graph</strong>.
       </p>
       <span class="stack">Python · JavaScript · SQL parsing · 29 tests</span>
+      <div class="project-bottom"><span class="when">September 2026 · 5 min read</span><span class="project-action">Try the demo <span aria-hidden="true">→</span></span></div>
     </a>
     <a class="project" href="mcp-power-bi.html">
-      <span class="tag">Article</span>
-      <span class="when">September 2026 · 8 min</span>
+      <div class="project-top"><span class="tag">Technical deep dive</span><span class="project-number" aria-hidden="true">03</span></div>
       <h3>Giving an AI agent read access to a Power BI semantic model</h3>
       <p>
         Your coding assistant keeps writing DAX against columns that don't exist, and the fix isn't a
@@ -75,11 +106,11 @@
         inside a context window, and why I'd keep it read-only.
       </p>
       <span class="stack">MCP · Power BI · TMDL · DAX · Python</span>
+      <div class="project-bottom"><span class="when">September 2026 · 8 min read</span><span class="project-action">Read article <span aria-hidden="true">→</span></span></div>
     </a>
 
     <a class="project" href="star-schema.html">
-      <span class="tag">Article · interactive</span>
-      <span class="when">September 2026 · 7 min</span>
+      <div class="project-top"><span class="tag">Article · interactive</span><span class="project-number" aria-hidden="true">04</span></div>
       <h3>The snapshot table that quietly triples your numbers</h3>
       <p>
         A monthly export appended to a table for eighteen months, now powering a dashboard the
@@ -87,63 +118,68 @@
         reasonable. <strong>Drag the slider and watch the gap open up.</strong>
       </p>
       <span class="stack">Dimensional modelling · Power BI · DAX · SQL</span>
+      <div class="project-bottom"><span class="when">September 2026 · 7 min read</span><span class="project-action">Read article <span aria-hidden="true">→</span></span></div>
     </a>
-
+    </div>
   </section>
 
-  <section id="skills">
-    <h2 class="section">Skills</h2>
+  <section id="skills" class="skills-section">
+    <div class="skills-intro">
+      <p class="eyebrow">Skills &amp; experience</p>
+      <h2 class="section">What I work with</h2>
+      <p>From the warehouse to the report — and the tooling that keeps it all maintainable.</p>
+    </div>
+    <div class="skills-list">
     <div class="skill-row">
-      <b>Business Intelligence</b> —
+      <h3>Business Intelligence</h3>
       <span>Power BI (Desktop, Service, Fabric), DAX, Power Query, semantic model and star schema
       design, performance tuning, SSRS paginated reports (RDL)</span>
     </div>
     <div class="skill-row">
-      <b>AI &amp; agentic tooling</b> —
+      <h3>AI &amp; agentic tooling</h3>
       <span>Model Context Protocol (MCP) servers, agentic coding workflows, custom agent and skill
       authoring, prompt and context engineering</span>
     </div>
     <div class="skill-row">
-      <b>Data &amp; SQL</b> —
+      <h3>Data &amp; SQL</h3>
       <span>Snowflake, SQL, SSMS, ETL pipelines, data warehousing, reconciliation, query tuning</span>
     </div>
     <div class="skill-row">
-      <b>Programming</b> —
+      <h3>Programming</h3>
       <span>Python (pandas), automated documentation and metadata generation, Git</span>
     </div>
     <div class="skill-row">
-      <b>Domain</b> —
+      <h3>Domain</h3>
       <span>Transportation and freight analytics — service performance (OTD/OTP), carrier scorecards,
       freight claims, billing reconciliation</span>
     </div>
+    </div>
   </section>
 
-  <section id="contact">
-    <h2 class="section">About</h2>
+  <section id="contact" class="contact-section">
     <div class="about">
-      <div class="initials">MP</div>
+      <div class="initials" aria-hidden="true">MP</div>
       <div>
+        <h2>A little about me.</h2>
         <p>
           I'm a BI developer at a global logistics provider, working on reporting for a manufacturing
           account across North America and EMEA. Most days that means Power BI semantic models,
           Snowflake SQL and SSRS, plus the internal tooling that keeps all of it maintainable.
         </p>
-        <p>
-          <a href="https://www.linkedin.com/in/martinschekaiban/"
-             style="color:var(--accent);text-decoration:none">LinkedIn</a>
-          <span style="color:var(--faint)"> · </span>
-          <a href="https://github.com/martinps3"
-             style="color:var(--accent);text-decoration:none">GitHub</a>
-        </p>
+        <div class="social-links">
+          <a href="https://www.linkedin.com/in/martinschekaiban/">LinkedIn <span aria-hidden="true">↗</span></a>
+          <a href="https://github.com/martinps3">GitHub <span aria-hidden="true">↗</span></a>
+        </div>
       </div>
     </div>
   </section>
 
-</div>
+</main>
 
 <footer class="site">
   <div class="wrap">
-    Built as a static site — no framework, no build step.
+    <span class="footer-name">Martin Padilla Schekaiban</span>
+    <span>Built as a static site — no framework, no build step.</span>
   </div>
 </footer>
 

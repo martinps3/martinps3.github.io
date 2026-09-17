@@ -8,22 +8,24 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
+<a class="skip-link" href="#main">Skip to content</a>
 
 <header class="site">
   <div class="wrap">
-    <a class="name" href="index.html">Martin Padilla Schekaiban</a>
-    <nav>
-      <a href="index.html#work">Writing</a>
+    <a class="name" href="index.html"><span class="brand-mark" aria-hidden="true">MP</span>Martin Padilla Schekaiban</a>
+    <nav aria-label="Main navigation">
+      <a href="index.html#work">Work</a>
       <a href="index.html#skills">Skills</a>
       <a href="index.html#contact">About</a>
     </nav>
   </div>
 </header>
 
-<div class="wrap">
-<a class="back" href="index.html">← Back</a>
+<main class="wrap reading" id="main">
+<a class="back" href="index.html#work">← All writing &amp; projects</a>
 
 <article>
+  <p class="eyebrow">Project / SQL documentation</p>
   <h1>sqldoc: explaining a report without reading the SQL</h1>
   <p class="sub">
     A small tool for the question I get asked more than any other.
@@ -51,8 +53,11 @@
   </p>
 
   <figure>
-    <img src="assets/sqldoc-flow.svg" alt="A SQL file with CTEs goes in; structured documentation comes out listing source tables, output columns with their lineage, and filters.">
+    <div class="figure-scroll" role="region" aria-label="SQL documentation flow diagram" tabindex="0">
+      <img src="assets/sqldoc-flow.svg" alt="A SQL file with CTEs goes in; structured documentation comes out listing source tables, output columns with their lineage, and filters.">
+    </div>
     <figcaption>
+      <span class="scroll-hint">Scroll horizontally to see the full diagram.</span>
       <b>Point it at a .sql file, get back what the report does.</b> The useful part is the middle
       column — where each output field actually comes from, with aliases resolved.
     </figcaption>
@@ -71,9 +76,9 @@
       <span class="lbl">Example</span>
       <span id="pg-tabs"></span>
     </div>
-    <textarea id="pg-input" spellcheck="false" aria-label="SQL input"></textarea>
+    <textarea id="pg-input" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" aria-label="SQL input"></textarea>
     <div class="pg-chips" id="pg-chips"></div>
-    <div id="pg-graph"></div>
+    <div id="pg-graph" role="region" aria-label="SQL lineage diagram" tabindex="0"></div>
     <div class="pg-body" id="pg-output"></div>
   </div>
 
@@ -217,7 +222,7 @@ SELECT wherever FROM t         -- keyword as a substring
   </div>
 </section>
 
-</div>
+</main>
 
 <footer class="site">
   <div class="wrap">

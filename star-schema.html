@@ -8,22 +8,24 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
+<a class="skip-link" href="#main">Skip to content</a>
 
 <header class="site">
   <div class="wrap">
-    <a class="name" href="index.html">Martin Padilla Schekaiban</a>
-    <nav>
+    <a class="name" href="index.html"><span class="brand-mark" aria-hidden="true">MP</span>Martin Padilla Schekaiban</a>
+    <nav aria-label="Main navigation">
       <a href="index.html#work">Work</a>
       <a href="index.html#skills">Skills</a>
-      <a href="index.html#contact">Contact</a>
+      <a href="index.html#contact">About</a>
     </nav>
   </div>
 </header>
 
-<div class="wrap">
-<a class="back" href="index.html">← Back</a>
+<main class="wrap reading" id="main">
+<a class="back" href="index.html#work">← All writing &amp; projects</a>
 
 <article>
+  <p class="eyebrow">Interactive article / Dimensional modelling</p>
   <h1>The snapshot table that quietly triples your numbers</h1>
   <p class="sub">
     Every metric is wrong, and every metric still looks completely reasonable.
@@ -66,8 +68,11 @@
   </p>
 
   <figure>
-    <img src="assets/snapshot-stacking.svg" alt="Three monthly exports appended into one flat table. Claim C-1001 appears in all three, so a row count of 5 represents only 2 real claims.">
+    <div class="figure-scroll" role="region" aria-label="Snapshot stacking diagram" tabindex="0">
+      <img src="assets/snapshot-stacking.svg" alt="Three monthly exports appended into one flat table. Claim C-1001 appears in all three, so a row count of 5 represents only 2 real claims.">
+    </div>
     <figcaption>
+      <span class="scroll-hint">Scroll horizontally to see the full diagram.</span>
       <b>C-1001 stayed open for three months</b>, so it's in the table three times. Row count says 5.
       There are 2 claims.
     </figcaption>
@@ -116,7 +121,7 @@ Total Amount = SUM( Claims[Amount] )    -- 14,900, should be 5,350
       </div>
     </div>
 
-    <div id="sn-chart"></div>
+    <div id="sn-chart" role="region" aria-label="Reported versus actual claim count" tabindex="0"></div>
 
     <p class="sn-foot">
       40 synthetic claims opening and resolving over a year. At one month the numbers agree — which
@@ -255,8 +260,11 @@ ADDCOLUMNS(
   </p>
 
   <figure>
-    <img src="assets/star-schema-model.svg" alt="Before: one flat Claims table with a text snapshot month. After: Fact_Claim at one row per claim, related to Dim_Date, Dim_Status and Dim_Carrier.">
+    <div class="figure-scroll" role="region" aria-label="Star schema model diagram" tabindex="0">
+      <img src="assets/star-schema-model.svg" alt="Before: one flat Claims table with a text snapshot month. After: Fact_Claim at one row per claim, related to Dim_Date, Dim_Status and Dim_Carrier.">
+    </div>
     <figcaption>
+      <span class="scroll-hint">Scroll horizontally to see the full diagram.</span>
       <b>The result is deliberately boring.</b> One row per claim in the fact, dimensions hanging off
       it, a date table that time intelligence can actually use.
     </figcaption>
@@ -354,7 +362,7 @@ RETURN
   </div>
 </section>
 
-</div>
+</main>
 
 <footer class="site">
   <div class="wrap">

@@ -8,22 +8,24 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
+<a class="skip-link" href="#main">Skip to content</a>
 
 <header class="site">
   <div class="wrap">
-    <a class="name" href="index.html">Martin Padilla Schekaiban</a>
-    <nav>
+    <a class="name" href="index.html"><span class="brand-mark" aria-hidden="true">MP</span>Martin Padilla Schekaiban</a>
+    <nav aria-label="Main navigation">
       <a href="index.html#work">Work</a>
       <a href="index.html#skills">Skills</a>
-      <a href="index.html#contact">Contact</a>
+      <a href="index.html#contact">About</a>
     </nav>
   </div>
 </header>
 
-<div class="wrap">
-<a class="back" href="index.html">← Back</a>
+<main class="wrap reading" id="main">
+<a class="back" href="index.html#work">← All writing &amp; projects</a>
 
 <article>
+  <p class="eyebrow">Technical deep dive / Semantic models</p>
   <h1>Giving an AI agent read access to a Power BI semantic model</h1>
   <p class="sub">
     Or: why your coding assistant keeps writing DAX against columns that don't exist.
@@ -59,8 +61,11 @@
   </p>
 
   <figure>
-    <img src="assets/mcp-architecture.svg" alt="A coding agent calls tools on an MCP server, which reads the Power BI semantic model over XMLA. Credentials stay on the server.">
+    <div class="figure-scroll" role="region" aria-label="MCP architecture diagram" tabindex="0">
+      <img src="assets/mcp-architecture.svg" alt="A coding agent calls tools on an MCP server, which reads the Power BI semantic model over XMLA. Credentials stay on the server.">
+    </div>
     <figcaption>
+      <span class="scroll-hint">Scroll horizontally to see the full diagram.</span>
       <b>The shape of it.</b> The agent never touches the model directly — it calls tools on a server
       that does. Which is also how credentials stay out of the chat transcript.
     </figcaption>
@@ -132,6 +137,7 @@ table 'Date'
     Splitting discovery from execution works much better:
   </p>
 
+  <div class="table-scroll" role="region" aria-label="MCP tools" tabindex="0">
   <table>
     <tr><th>Tool</th><th>Returns</th><th>Why it earns its place</th></tr>
     <tr>
@@ -160,6 +166,7 @@ table 'Date'
       <td>Verification instead of confident assertion</td>
     </tr>
   </table>
+  </div>
 
   <p>
     The split is mostly about token cost. Listing 200 measure names is a small payload. Returning 200
@@ -218,8 +225,11 @@ def run_dax(query: str, max_rows: int = 100) -> dict:
   </p>
 
   <figure>
-    <img src="assets/mcp-before-after.svg" alt="Left: without model access the agent invents a Sales table and an OnTimeFlag column. Right: with access it lists tables, finds the existing measure, reads its DAX, and composes on top of it.">
+    <div class="figure-scroll" role="region" aria-label="Model access comparison diagram" tabindex="0">
+      <img src="assets/mcp-before-after.svg" alt="Left: without model access the agent invents a Sales table and an OnTimeFlag column. Right: with access it lists tables, finds the existing measure, reads its DAX, and composes on top of it.">
+    </div>
     <figcaption>
+      <span class="scroll-hint">Scroll horizontally to see the full diagram.</span>
       <b>Left, no access.</b> Plausible DAX against a table that doesn't exist.
       <b>Right, with access.</b> Three cheap lookups, then a measure built on the one that was already
       there.
@@ -343,7 +353,7 @@ CALCULATE(
   </div>
 </section>
 
-</div>
+</main>
 
 <footer class="site">
   <div class="wrap">

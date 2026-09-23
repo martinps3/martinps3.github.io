@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Join and grain checker | Martin Padilla Schekaiban</title>
+<meta name="description" content="Compare CSV query results before and after a join. Find repeated keys, missing records and changed amounts before using a Snowflake query in Power BI or RDL.">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/grain-checker.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site">
+  <div class="wrap">
+    <a class="name" href="index.html"><span class="brand-mark" aria-hidden="true">MP</span>Martin Padilla Schekaiban</a>
+    <nav aria-label="Main navigation">
+      <a href="index.html#work">Work</a>
+      <a href="index.html#skills">Skills</a>
+      <a href="index.html#contact">About</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap reading checker-reading" id="main">
+<a class="back" href="index.html#work">← All writing &amp; projects</a>
+<article class="checker-article">
+  <p class="eyebrow">A reporting utility · Snowflake, Power BI &amp; RDL</p>
+  <h1>Join and grain checker</h1>
+  <p class="sub">The shipment count matches. Does the spend?</p>
+  <div class="byline">
+    <time datetime="2026-08">August 2026</time> <span class="dot">·</span> Interactive tool <span class="dot">·</span> By Martin Padilla Schekaiban
+  </div>
+  <p>
+    I work with Snowflake tables that engineering has already prepared. My part is writing the
+    reporting SQL: joining those tables, choosing the grain, and checking the dataset before it
+    reaches Power BI or an RDL report. This tool compares the result before a join with the
+    result after it. It gives me a short list of keys to investigate instead of just two grand totals.
+  </p>
+
+  <div class="grain-tool" id="checker" aria-labelledby="gc-title">
+    <div class="gc-heading">
+      <div>
+        <h2 id="gc-title">Compare two query results</h2>
+        <p>Expected grain: one row per selected key, before and after the join.</p>
+      </div>
+      <span class="gc-local">Runs locally · No upload</span>
+    </div>
+    <noscript><p class="gc-error">JavaScript is required for this comparison. The explanation and downloadable SQL checks below work without it.</p></noscript>
+    <div id="gc-controls" hidden>
+      <div class="gc-examples">
+        <label for="gc-example">Synthetic example</label>
+        <select id="gc-example">
+          <option value="fanout">Event join repeats a shipment</option>
+          <option value="matched">One row per shipment</option>
+          <option value="missing">A filter drops a shipment</option>
+          <option value="offset">Same total, different amounts</option>
+        </select>
+        <button type="button" id="gc-load-example" class="gc-button">Load example</button>
+        <button type="button" id="gc-clear" class="gc-button gc-quiet">Clear data</button>
+      </div>
+
+      <form id="gc-form" novalidate>
+        <div class="gc-inputs">
+          <div>
+            <label for="gc-before">Before the join <span>Baseline query</span></label>
+            <textarea id="gc-before" rows="8" wrap="off" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" aria-describedby="gc-format gc-status"></textarea>
+          </div>
+          <div>
+            <label for="gc-after">After the join <span>Candidate query</span></label>
+            <textarea id="gc-after" rows="8" wrap="off" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" aria-describedby="gc-format gc-status"></textarea>
+          </div>
+        </div>
+        <p class="gc-help" id="gc-format">
+          Comma-separated CSV with a header row. Use the same column names for keys and the amount
+          on both sides. Up to 10,000 data rows, 128 columns and 1,000,000 characters per side.
+        </p>
+        <div class="gc-prepare">
+          <button type="button" id="gc-read" class="gc-button">Read columns</button>
+          <p id="gc-status" role="status" aria-live="polite">Load an example or paste two CSV results.</p>
+        </div>
+        <fieldset class="gc-mapping" id="gc-mapping" disabled>
+          <legend>Choose what should stay the same</legend>
+          <fieldset class="gc-keys">
+            <legend>Business key <span>Select multiple columns for a composite key.</span></legend>
+            <div id="gc-key-options" class="gc-key-options"></div>
+          </fieldset>
+          <div class="gc-amount">
+            <label for="gc-amount">Amount to reconcile</label>
+            <select id="gc-amount" aria-describedby="gc-number-format">
+              <option value="">Row and key checks only</option>
+            </select>
+            <p class="gc-help" id="gc-number-format">
+              Select a base-grain, additive amount carried through unchanged. Use one currency/unit,
+              plain decimals such as 120.50, and up to six decimal places. Blanks are errors, not zero.
+            </p>
+          </div>
+          <button type="submit" class="gc-button gc-primary">Compare results</button>
+        </fieldset>
+        <p id="gc-error" class="gc-error" role="alert" hidden></p>
+      </form>
+
+      <section id="gc-results" class="gc-results" aria-labelledby="gc-result-title" hidden>
+        <div class="gc-verdict" id="gc-verdict">
+          <h3 id="gc-result-title" tabindex="-1"></h3>
+          <p id="gc-result-message"></p>
+        </div>
+        <div class="table-scroll gc-summary-scroll" role="region" aria-label="Before and after summary" tabindex="0">
+          <table class="gc-summary">
+            <caption>Dataset comparison</caption>
+            <thead><tr><th scope="col">Check</th><th scope="col">Before</th><th scope="col">After</th></tr></thead>
+            <tbody id="gc-summary-body"></tbody>
+          </table>
+        </div>
+        <p id="gc-total-note" class="gc-total-note"></p>
+        <div class="gc-findings" id="gc-findings"></div>
+        <p class="gc-help">
+          Findings can overlap: a repeated key may also have a changed sum. Equal grand totals can
+          hide differences between keys. “No differences” only covers the selected columns and pasted rows.
+        </p>
+
+        <div class="gc-detail-heading">
+          <h3>Inspect individual keys</h3>
+          <label for="gc-filter">Show
+            <select id="gc-filter">
+              <option value="issues">Keys with findings</option>
+              <option value="all">All keys</option>
+              <option value="multiplied">More rows after the join</option>
+              <option value="missing">Missing keys</option>
+              <option value="added">New keys</option>
+              <option value="amount-changed">Changed amounts</option>
+              <option value="base-duplicate">Repeated baseline keys</option>
+            </select>
+          </label>
+        </div>
+        <p class="gc-help gc-scroll-help">On a narrow screen, scroll the table sideways to see all columns.</p>
+        <div class="table-scroll gc-details-scroll" role="region" aria-label="Key-level comparison" tabindex="0">
+          <table class="gc-details">
+            <caption id="gc-detail-caption"></caption>
+            <thead id="gc-detail-head"></thead>
+            <tbody id="gc-detail-body"></tbody>
+          </table>
+        </div>
+        <div class="gc-pagination">
+          <button type="button" id="gc-prev" class="gc-button">Previous</button>
+          <span id="gc-page-info" role="status"></span>
+          <button type="button" id="gc-next" class="gc-button">Next</button>
+        </div>
+        <div class="gc-downloads">
+          <button type="button" id="gc-download" class="gc-button">Download comparison (.json)</button>
+          <a href="assets/join-grain-checks.sql" download class="gc-button">Download Snowflake checks (.sql)</a>
+        </div>
+        <p class="gc-help">
+          The JSON includes every compared key and amount, not just this page of results.
+          Treat that downloaded file as data from your report.
+        </p>
+      </section>
+    </div>
+    <p class="gc-privacy">
+      The comparison runs in this tab without sending your CSV anywhere. It uses no AI calls,
+      browser storage or analytics. Reloading or clearing the page removes the inputs from the tool. Use public or
+      sanitised examples if your organisation restricts where work data can be pasted.
+    </p>
+  </div>
+
+  <h2>Why I check more than the distinct count</h2>
+  <p>
+    In the first example, the baseline has three shipments totalling 400. Shipment 101 carries a
+    charge of 120. Joining its two event records repeats that charge, so the joined result totals
+    520 even though it still contains three distinct shipments.
+  </p>
+  <p>
+    The “same total, different amounts” example catches a different mistake: one shipment gains
+    30 and another loses 30. A grand-total comparison passes. The per-key comparison doesn't.
+    Both examples are made-up data, not claims about a particular client incident.
+  </p>
+
+  <h2>Using it with a reporting query</h2>
+  <p>
+    Export the key and an optional amount from your base query, then export those same fields from
+    the query with the join added. Keep the date range, parameters, business scope and data cutoff
+    aligned. If the ETL output changed between exports, that difference needs investigating too;
+    the tool cannot attribute every change to the join.
+  </p>
+  <p>
+    Choose the columns that identify one intended report row. That might be a shipment ID, or a
+    shipment ID together with a charge-line ID. If the baseline already repeats that key, the tool
+    calls it out instead of certifying the comparison. Don't add extra columns merely to make
+    duplicates disappear: the selected key should mean something in the report.
+  </p>
+  <p>
+    Keys are compared as exact text, including case, spaces and leading zeros. Empty key cells are
+    rejected; the text <code>NULL</code> is treated as a literal ID, not a database null. Clean up
+    export-specific null markers before comparing. Amounts are summed using exact decimal
+    arithmetic, with no currency conversion, rounding tolerance or automatic removal of repeated rows.
+  </p>
+
+  <h2>What I would do with a finding</h2>
+  <p>
+    A repeated shipment key sends me back to the cardinality of the join. If the report needs only
+    an event count, aggregating the events to shipment grain before joining may be appropriate.
+    If it needs event detail, I would keep that grain and avoid summing a repeated shipment charge.
+    Visually grouping the rows in RDL does not repair an inflated dataset total.
+  </p>
+  <p>
+    Missing keys can come from an inner join or a filter on the right-hand table of a left join.
+    New keys can mean that the two exports don't have the same scope. The useful next step is a
+    short query for those IDs, not an automatic <code>DISTINCT</code> applied to the entire result.
+  </p>
+  <p>
+    An agent can help follow a long query and suggest checks once I provide the intended grain.
+    The comparison itself is deterministic and doesn't use AI. I still decide whether a change is
+    expected and whether the output is appropriate for the Power BI model or RDL dataset.
+  </p>
+
+  <details class="gc-method">
+    <summary>Limits and the downloadable SQL</summary>
+    <p>
+      This compares two datasets, not a SQL execution plan. It does not infer the correct grain,
+      detect changes in unselected columns, or prove that a sample represents the full result.
+      Header-only CSV is allowed for an empty result; an empty baseline cannot establish a valid
+      one-row-per-key starting point.
+    </p>
+    <p>
+      Amounts must have at most 30 integer digits and six fractional digits, using a decimal point
+      without thousands separators, currency symbols or scientific notation. Blank or invalid
+      amounts stop the comparison rather than being silently excluded.
+    </p>
+    <p>
+      The <a href="assets/join-grain-checks.sql" download>Snowflake worksheet</a> is a read-only,
+      self-contained version of the shipment example. Replace its two example CTEs with queries
+      from the same reporting scope to check a larger result in your approved environment.
+      It does not connect this page to Snowflake or create any database objects.
+    </p>
+    <p><a href="assets/grain-checker.js">Read the comparison engine</a> ·
+      <a href="tests/grain-checker.test.cjs">Read the automated checks</a></p>
+  </details>
+
+  <footer class="article-footer">
+    <p>Built by <strong>Martin Padilla Schekaiban</strong> for the query-review side of BI development, after the upstream ETL.</p>
+    <a href="sqldoc.html">Related: sqldoc explains where query fields come from →</a>
+  </footer>
+</article>
+</main>
+<footer class="site"><div class="wrap"><a href="index.html#work">← All writing &amp; projects</a></div></footer>
+<script src="assets/grain-checker.js"></script>
+<script src="assets/grain-checker-ui.js"></script>
+</body>
+</html>

@@ -3,13 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>The snapshot table that quietly triples your numbers</title>
-<meta name="description" content="Stacked monthly snapshots silently double-count in a flat fact table. How to detect it and reshape it into a star schema with a proper date dimension.">
+<title>When monthly snapshots get counted as new claims</title>
+<meta name="description" content="An interactive example of double-counting monthly snapshots, with SQL checks and modelling choices for current-state and point-in-time reporting.">
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
 <a class="skip-link" href="#main">Skip to content</a>
-
 <header class="site">
   <div class="wrap">
     <a class="name" href="index.html"><span class="brand-mark" aria-hidden="true">MP</span>Martin Padilla Schekaiban</a>
@@ -23,190 +22,121 @@
 
 <main class="wrap reading" id="main">
 <a class="back" href="index.html#work">← All writing &amp; projects</a>
-
-<article>
-  <p class="eyebrow">Interactive article / Dimensional modelling</p>
-  <h1>The snapshot table that quietly triples your numbers</h1>
-  <p class="sub">
-    Every metric is wrong, and every metric still looks completely reasonable.
-  </p>
+<article class="article-case">
+  <p class="eyebrow">Modelling example · Interactive</p>
+  <h1>When monthly snapshots get counted as new claims</h1>
   <div class="byline">
-    September 2026 <span class="dot">·</span> Modelling, Power BI, DAX <span class="dot">·</span> 7 min read
+    <time datetime="2026-05">May 2026</time> <span class="dot">·</span> 6 min read
   </div>
 
   <p>
-    Here's a pattern I've now run into enough times to recognise it from across the room. Someone
-    needs history in a report. There's no warehouse table for it, but there <em>is</em> a tracker
-    somebody exports every month. So the export gets appended to a table, month after month, and
-    eighteen months later that table is the source for a dashboard the business checks every Monday.
+    Suppose an operations team exports its claims tracker at the end of each month. Each export
+    contains the records being tracked at that point. Appending the files gives the team a useful
+    history, but it also changes what a row means: one claim can now appear in several months.
   </p>
-
   <p>
-    And every number on it is inflated.
+    If the report calls a row count “total claims,” it counts those appearances as separate claims.
+    Summing the amount column has the same problem when the intended measure is one amount per
+    claim. The calculations can be valid DAX and still answer the wrong question.
   </p>
 
+  <h2>Try adding another month's export</h2>
   <p>
-    What makes this one expensive isn't the bug. It's that the output stays believable. A claim count
-    that should read 400 reads 6,800 — and nobody's gut reaction fires on a number that big, because
-    nobody has an intuition for what the number <em>should</em> be. That's the whole reason they built
-    the dashboard.
+    This example uses 40 generated claims with different opening and closing months. Each claim
+    keeps the same amount throughout its life and appears through its closing month. Move the
+    slider to compare accumulated snapshot rows with distinct claims seen so far.
   </p>
-
-  <div class="note">
-    <p>
-      The data below is generated. The pattern is generic — I've hit it in claims tracking, open-order
-      reporting, and pretty much anywhere a report gets built on top of a periodically exported
-      workbook.
-    </p>
-  </div>
-
-  <h2>What's actually in the table</h2>
-
-  <p>
-    Each export is a complete dump of every open record at that moment, plus a column noting when it
-    was taken. Append them and the same record shows up once per month it stayed open:
-  </p>
-
-  <figure>
-    <div class="figure-scroll" role="region" aria-label="Snapshot stacking diagram" tabindex="0">
-      <img src="assets/snapshot-stacking.svg" alt="Three monthly exports appended into one flat table. Claim C-1001 appears in all three, so a row count of 5 represents only 2 real claims.">
-    </div>
-    <figcaption>
-      <span class="scroll-hint">Scroll horizontally to see the full diagram.</span>
-      <b>C-1001 stayed open for three months</b>, so it's in the table three times. Row count says 5.
-      There are 2 claims.
-    </figcaption>
-  </figure>
-
-  <p>
-    Write the obvious measures against that and they're both wrong:
-  </p>
-
-<pre><code>Total Claims = COUNTROWS( Claims )      -- 5, should be 2
-Total Amount = SUM( Claims[Amount] )    -- 14,900, should be 5,350
-</code></pre>
-
-  <p>
-    Two claims is easy to eyeball. The problem is that nobody is looking at two claims — and the gap
-    grows every month the export runs. Drag this:
-  </p>
-
   <div class="sn">
     <div class="sn-top">
       <label for="sn-slider">Months of exports appended</label>
-      <input type="range" id="sn-slider" min="1" max="12" value="1">
+      <input type="range" id="sn-slider" min="1" max="12" value="1" aria-describedby="sn-description">
       <span id="sn-months">1 month</span>
     </div>
-
     <div class="sn-grid">
       <div class="sn-cell bad">
-        <span class="k">Claim count on the dashboard</span>
+        <span class="k">Accumulated snapshot rows</span>
         <span class="v" id="sn-rows">0</span>
-        <span class="sub">COUNTROWS over the flat table</span>
+        <span class="sub">COUNTROWS over all exports</span>
       </div>
       <div class="sn-cell good">
-        <span class="k">Claims that actually exist</span>
+        <span class="k">Distinct claims seen so far</span>
         <span class="v" id="sn-distinct">0</span>
-        <span class="sub">distinct ClaimId</span>
+        <span class="sub">one count per ClaimId</span>
       </div>
       <div class="sn-cell bad">
-        <span class="k">Total value reported</span>
+        <span class="k">Amount summed across exports</span>
         <span class="v" id="sn-naiveSum">$0</span>
-        <span class="sub">SUM over every row</span>
+        <span class="sub">repeated amounts included</span>
       </div>
       <div class="sn-cell good">
-        <span class="k">Real total value</span>
+        <span class="k">Amount counted once per claim</span>
         <span class="v" id="sn-realSum">$0</span>
-        <span class="sub">one row per claim</span>
+        <span class="sub">fixed claim amounts in this example</span>
       </div>
     </div>
-
-    <div id="sn-chart" role="region" aria-label="Reported versus actual claim count" tabindex="0"></div>
-
-    <p class="sn-foot">
-      40 synthetic claims opening and resolving over a year. At one month the numbers agree — which
-      is exactly why this passes review on the day it's built.
+    <div id="sn-chart" role="region" aria-label="Snapshot row count versus distinct claim count" tabindex="0"></div>
+    <p class="sn-foot" id="sn-description">
+      These are cumulative counts, not the number of open claims at month-end.
+      At one month there are no repeated snapshots yet.
     </p>
   </div>
-
   <p>
-    That last point is the trap. On day one the flat table is correct, because there's only one
-    snapshot in it. The report gets signed off, and the error accrues quietly from month two onward.
+    The count and the amount don't necessarily grow by the same factor. A high-value claim that
+    stays open for several months contributes its amount repeatedly. That's one reason I check
+    both the record count and the financial total during reconciliation.
   </p>
 
+  <h2>Check the keys before changing the model</h2>
   <p>
-    Worse, the error compounds in a specific direction. A "claims over time" chart shows a confident
-    upward trend that's purely the table getting taller each month. I've seen that chart presented as
-    a genuine business trend. It's a very convincing artefact.
+    I would start with three counts. Here, <code>SnapshotMonth</code> is a date identifying the
+    monthly export, and <code>ClaimId</code> is a non-null business key:
   </p>
-
-  <h2>Confirming it in one query</h2>
-
-  <p>
-    If distinct business keys sit well below row count, you're stacking:
-  </p>
-
 <pre><code>SELECT
-    COUNT(*)                        AS total_rows,
-    COUNT(DISTINCT ClaimId)         AS distinct_claims,
-    COUNT(DISTINCT SnapshotMonth)   AS snapshots,
+    COUNT(*) AS snapshot_rows,
+    COUNT(DISTINCT ClaimId) AS distinct_claims,
+    COUNT(DISTINCT SnapshotMonth) AS snapshots,
     CAST(COUNT(*) AS FLOAT)
         / NULLIF(COUNT(DISTINCT ClaimId), 0) AS rows_per_claim
-FROM Claims;
-</code></pre>
-
+FROM Claims;</code></pre>
   <p>
-    <code>rows_per_claim</code> around 1.0 and you're fine. Close to the snapshot count means almost
-    everything persists across every period. In between — the usual answer — means records hang
-    around for a while and then resolve, which is exactly what you'd expect from claims or open
-    orders.
+    A ratio above one shows repeated claim IDs, but it doesn't establish the cause. The repeats
+    could be valid monthly observations, duplicate imports, or multiple line items belonging to
+    the same claim. Check the proposed snapshot key as well:
+  </p>
+<pre><code>SELECT ClaimId, SnapshotMonth, COUNT(*) AS rows_at_grain
+FROM Claims
+GROUP BY ClaimId, SnapshotMonth
+HAVING COUNT(*) &gt; 1;</code></pre>
+  <p>
+    If this returns rows, investigate them before deduplicating. A tie in the latest month means
+    a simple “take the newest row” rule could choose an arbitrary amount or status. I also check
+    for null keys and look at a few complete claim histories, including records that disappear
+    from later exports.
   </p>
 
+  <h2>Two different reporting requirements</h2>
   <p>
-    Two follow-ups worth running before you touch anything. Does <code>(ClaimId, SnapshotMonth)</code>
-    uniquely identify a row? That tells you the real grain. And does <code>Amount</code> ever change
-    between snapshots for the same claim? That tells you whether collapsing is safe or whether you're
-    about to throw away history.
+    “What was open at the end of March?” requires historical observations. One row per claim per
+    snapshot is useful for that question. Counts should be evaluated within a selected snapshot,
+    and a total across several months needs a deliberate definition rather than a default sum.
+  </p>
+  <p>
+    “How many claims have we handled, and what is their latest known amount?” needs a claim-level
+    table. I would normally keep the raw snapshot history and derive a second table at that grain.
+    There is no reason to discard the history just because one report needs a different shape.
   </p>
 
-  <h2>First, decide what the table is for</h2>
-
+  <h3>For a claim-level table</h3>
   <p>
-    Don't reshape yet. There's a question to answer, and it's a business question rather than a
-    technical one: does anyone actually need point-in-time?
+    After validating that the snapshot key is unique and non-null, this query retains each claim's
+    latest observation. It also keeps the dates of the first and last exports in which it appeared:
   </p>
-
-  <ul>
-    <li>
-      <strong>If yes</strong> — someone genuinely asks "how many were open at the end of March?" —
-      then keep every row. One row per claim per month is the correct grain and the table is fine.
-      Your measures are the problem.
-    </li>
-    <li>
-      <strong>If no</strong> — they want current state and lifecycle dates — collapse to one row per
-      claim.
-    </li>
-  </ul>
-
-  <p>
-    In my experience it's almost always the second, built accidentally on the first. Ask the business
-    directly, though. Guessing here means rebuilding twice.
-  </p>
-
-  <h2>Collapsing it</h2>
-
-  <p>
-    Assuming current state plus the ability to trend by when things happened, reduce to one row per
-    claim and keep the first and last time you saw it:
-  </p>
-
 <pre><code>WITH ranked AS (
     SELECT
         ClaimId,
         Status,
         Amount,
         OpenedDate,
-        SnapshotMonth,
         ROW_NUMBER() OVER (
             PARTITION BY ClaimId
             ORDER BY SnapshotMonth DESC
@@ -217,159 +147,71 @@ FROM Claims;
 )
 SELECT
     ClaimId,
-    Status      AS CurrentStatus,
-    Amount      AS CurrentAmount,
+    Status AS LastObservedStatus,
+    Amount AS LastObservedAmount,
     OpenedDate,
-    first_seen  AS FirstSeenMonth,
-    last_seen   AS LastSeenMonth
+    first_seen AS FirstSeenMonth,
+    last_seen AS LastSeenMonth
 FROM ranked
-WHERE rn = 1;
-</code></pre>
-
+WHERE rn = 1;</code></pre>
   <p>
-    Now <code>COUNTROWS</code> means what everyone assumed it meant, because the grain finally matches
-    the word "claim".
+    “Last observed” is intentional. If an export contains only open claims, a claim disappearing
+    does not tell us its final status or closing date. It could have closed, moved out of scope,
+    or been omitted from an incomplete file. A current-state report needs another source or an
+    agreed rule for those cases.
+  </p>
+  <p>
+    Similarly, <code>FirstSeenMonth</code> isn't necessarily the opening date, especially if the
+    archive starts after the claim was created. Keep those meanings separate when naming fields.
   </p>
 
-  <h3>Then give it a real date table</h3>
-
+  <h3>For a snapshot report</h3>
   <p>
-    A text <code>SnapshotMonth</code> column can't do time intelligence. It sorts alphabetically,
-    <code>DATESINPERIOD</code> won't look at it, and every month-over-month calculation turns into a
-    hand-rolled workaround that someone will have to maintain. Build the date dimension:
+    Relate a snapshot-date dimension to the fact table and make the selected period visible in
+    the report. One conservative measure is to return a count only when the context contains
+    a single snapshot:
+  </p>
+<pre><code>Claims in Snapshot =
+IF(
+    HASONEVALUE('Snapshot Date'[Date]),
+    COUNTROWS(Fact_Snapshot),
+    BLANK()
+)</code></pre>
+  <p>
+    This assumes an active one-to-many relationship from <code>'Snapshot Date'[Date]</code> to
+    <code>Fact_Snapshot[SnapshotMonth]</code> and a validated one-row-per-claim-per-snapshot grain.
+    A chart with one snapshot per point works; an unfiltered card or a multi-month total is blank.
+    If the business wants the latest snapshot by default, implement that explicitly and show its
+    date rather than quietly choosing it.
   </p>
 
-<pre><code>Dim_Date =
-VAR MinDate = MIN( Fact_Claim[OpenedDate] )
-VAR MaxDate = MAX( Fact_Claim[OpenedDate] )
-RETURN
-ADDCOLUMNS(
-    CALENDAR( MinDate, MaxDate ),
-    "Year",        YEAR( [Date] ),
-    "MonthNumber", MONTH( [Date] ),
-    "MonthName",   FORMAT( [Date], "MMM" ),
-    "MonthStart",  DATE( YEAR([Date]), MONTH([Date]), 1 ),
-    "YearMonth",   FORMAT( [Date], "YYYY-MM" )
-)
-</code></pre>
-
+  <h2>Dates and reconciliation</h2>
   <p>
-    Mark it as a date table, sort <code>MonthName</code> by <code>MonthNumber</code> (or spend an
-    afternoon wondering why April comes first), and relate it one-to-many with a single filter
-    direction.
+    A claim-level model can relate <code>OpenedDate</code> to a proper date dimension for reporting
+    on when claims started. That is a different date role from when an export was taken.
+    For classic DAX time intelligence, use a continuous date table covering complete years,
+    mark it appropriately, and confirm the active relationship. Sort month names by month number,
+    with a year-month label for charts that span years.
+  </p>
+  <p>
+    Before replacing the report, I would compare a small sample of claim histories, the distinct
+    key count, and a separately calculated sum at the intended grain. Then I would check a
+    month-end view against that month's source export. These checks answer different questions;
+    agreement on the total alone doesn't validate the history.
+  </p>
+  <p>
+    If the old report was double-counting, publish the reconciliation with the change.
+    Users will notice a lower total, and they need to know which definition changed and which
+    previous reports are affected.
   </p>
 
-  <figure>
-    <div class="figure-scroll" role="region" aria-label="Star schema model diagram" tabindex="0">
-      <img src="assets/star-schema-model.svg" alt="Before: one flat Claims table with a text snapshot month. After: Fact_Claim at one row per claim, related to Dim_Date, Dim_Status and Dim_Carrier.">
-    </div>
-    <figcaption>
-      <span class="scroll-hint">Scroll horizontally to see the full diagram.</span>
-      <b>The result is deliberately boring.</b> One row per claim in the fact, dimensions hanging off
-      it, a date table that time intelligence can actually use.
-    </figcaption>
-  </figure>
-
-  <h3>Measures that read like the question</h3>
-
-<pre><code>Claim Count = COUNTROWS( Fact_Claim )
-
-Open Claims =
-CALCULATE(
-    [Claim Count],
-    Dim_Status[StatusGroup] = "Open"
-)
-
-Open Claims % =
-DIVIDE( [Open Claims], [Claim Count] )
-
-Claim Count MoM % =
-VAR Current = [Claim Count]
-VAR Prior =
-    CALCULATE(
-        [Claim Count],
-        DATEADD( Dim_Date[Date], -1, MONTH )
-    )
-RETURN
-    DIVIDE( Current - Prior, Prior )
-</code></pre>
-
-  <p>
-    <code>DIVIDE</code> rather than <code>/</code> everywhere. It returns blank on a zero denominator
-    instead of an error, and a blank renders as an empty cell rather than taking out the whole visual.
-  </p>
-
-  <h2>If you do need point-in-time</h2>
-
-  <p>
-    Keep the snapshot grain, but stop writing measures that pretend it isn't there. Either scope to
-    the latest snapshot explicitly:
-  </p>
-
-<pre><code>Claims (Latest Snapshot) =
-VAR LatestSnapshot =
-    CALCULATE(
-        MAX( Fact_Snapshot[SnapshotMonth] ),
-        ALL( Fact_Snapshot )
-    )
-RETURN
-    CALCULATE(
-        COUNTROWS( Fact_Snapshot ),
-        Fact_Snapshot[SnapshotMonth] = LatestSnapshot
-    )
-</code></pre>
-
-  <p>
-    — or promote <code>SnapshotMonth</code> to its own dimension so every visual is explicitly
-    filtered to one period. What you can't do is leave it unfiltered and hope, because unfiltered it
-    sums across all snapshots and you're back where you started.
-  </p>
-
-  <h2>Before you ship it</h2>
-
-  <ul>
-    <li>Distinct business keys in the source match row count in the new fact table.</li>
-    <li>Total amount ties to a hand-written <code>SELECT SUM(...)</code> over deduplicated source.</li>
-    <li>Every visual points at the date dimension, not a leftover text column on the fact.</li>
-    <li>No measure divides with <code>/</code> where the denominator can be zero or blank.</li>
-    <li>Someone in the business has checked the new numbers against something they already trust.</li>
-  </ul>
-
-  <p>
-    That last one is the step people skip, and it's the one that matters. Be ready for the corrected
-    figures to land badly — a claim count dropping from 6,800 to 400 is a conversation, not a
-    deployment. Have the reconciliation in your hand before you show anyone, because the first
-    question will be "so which number was wrong, and for how long?"
-  </p>
-
+  <footer class="article-footer">
+    <p>Written by <strong>Martin Padilla Schekaiban</strong>. The interactive example uses synthetic claims, not employer or client data.</p>
+    <a href="snowflake-etl.html">Related: Snowflake to Power BI, and corrections outside the refresh window →</a>
+  </footer>
 </article>
-
-<section>
-  <div class="about">
-    <div class="initials">MP</div>
-    <div>
-      <p>
-        I'm Martin — a BI developer working mostly in Power BI, Snowflake and SSRS on supply chain
-        reporting. I write here now and then about modelling problems and the tooling I build around
-        them.
-      </p>
-      <p>
-        <a href="https://www.linkedin.com/in/martinschekaiban/" style="color:var(--accent);text-decoration:none">LinkedIn</a>
-        <span style="color:var(--faint)"> · </span>
-        <a href="index.html" style="color:var(--accent);text-decoration:none">More writing</a>
-      </p>
-    </div>
-  </div>
-</section>
-
 </main>
-
-<footer class="site">
-  <div class="wrap">
-    <a href="index.html">← All work</a>
-  </div>
-</footer>
-
+<footer class="site"><div class="wrap"><a href="index.html#work">← All writing &amp; projects</a></div></footer>
 <script src="assets/snapshot-demo.js"></script>
 </body>
 </html>

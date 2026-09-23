@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Snowflake to Power BI: refreshing less, without missing corrections</title>
+<meta name="description" content="A small incremental-refresh project with Snowflake SQL, Power Query M and a hands-on example of late corrections outside the refresh window.">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/incremental-refresh.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site">
+  <div class="wrap">
+    <a class="name" href="index.html"><span class="brand-mark" aria-hidden="true">MP</span>Martin Padilla Schekaiban</a>
+    <nav aria-label="Main navigation">
+      <a href="index.html#work">Work</a>
+      <a href="index.html#skills">Skills</a>
+      <a href="index.html#contact">About</a>
+    </nav>
+  </div>
+</header>
+<main class="wrap reading refresh-reading" id="main">
+<a class="back" href="index.html#work">← All writing &amp; projects</a>
+<article class="refresh-article">
+  <p class="eyebrow">Personal project / Snowflake → Power BI</p>
+  <h1>Snowflake → Power BI: incremental refresh</h1>
+  <p class="sub">An incremental-refresh setup, with one correction deliberately outside the window.</p>
+  <div class="byline"><time datetime="2026-08">August 2026</time> <span class="dot">·</span> SQL + Power Query <span class="dot">·</span> By Martin Padilla Schekaiban</div>
+  <p>
+    A shipment arrives in the report on Monday. Its charge is corrected months later.
+    Snowflake has the right value, but will the next Power BI refresh pick it up?
+    That is the question behind this project.
+  </p>
+  <p>
+    My day-to-day work starts with tables engineering has already prepared. Here I use a small,
+    fictional shipment table to work through the next part: a reporting view, a folding date
+    filter, and an Import model that refreshes recent data without reloading all its history.
+    This is a personal exercise, not a production ETL implementation.
+  </p>
+
+  <ol class="ir-flow" aria-label="Project data flow">
+    <li><span>01 / Source</span><strong>Snowflake table</strong><small>One row per shipment</small></li>
+    <li><span>02 / Transform</span><strong>Reporting view</strong><small>Stable shipment timestamp, USD charge</small></li>
+    <li><span>03 / Load</span><strong>Power Query → Import</strong><small>Date-bounded reads into Power BI</small></li>
+  </ol>
+
+  <div class="ir-lab" id="refresh-lab" aria-labelledby="ir-title">
+    <div class="ir-lab-heading">
+      <p class="eyebrow">Try the refresh decision</p>
+      <h2 id="ir-title">The refresh succeeds.<br>May is still wrong.</h2>
+      <p>Six shipments are already loaded. Add a new shipment and two corrections, then see what gets re-read.</p>
+      <p class="ir-disclosure"><strong>Browser simulation.</strong> Fixed synthetic data; no Snowflake connection or Power BI execution.
+        The downloadable SQL and M below are the implementation starting point.</p>
+    </div>
+    <noscript><p class="ir-notice">Enable JavaScript to step through the example. The expected results, setup instructions and downloads below remain available.</p></noscript>
+    <div id="ir-controls" hidden>
+      <div class="ir-policy">
+        <div>
+          <label for="ir-window">Re-read the most recent</label>
+          <select id="ir-window">
+            <option value="3">3 days</option>
+            <option value="30">30 days</option>
+            <option value="150">150 days (includes May)</option>
+          </select>
+        </div>
+        <p>Example cutoff <strong>24 Sep 2026, 00:00 UTC</strong><br>Stored history starts <strong>1 May 2026</strong></p>
+      </div>
+      <p id="ir-range" class="ir-range"></p>
+      <div class="ir-actions">
+        <button type="button" id="ir-change" class="ir-button ir-primary">1. Apply source changes</button>
+        <button type="button" id="ir-refresh" class="ir-button" disabled>2. Run incremental refresh</button>
+        <button type="button" id="ir-repair" class="ir-button" disabled>3. Reprocess May</button>
+        <button type="button" id="ir-reset" class="ir-button ir-reset">Start over</button>
+      </div>
+      <p class="ir-help">Changing the window restarts the example. “Reprocess May” models an explicit historical repair, not a normal scheduled refresh.</p>
+      <p id="ir-error" class="ir-notice" role="alert" hidden></p>
+      <div class="ir-status" id="ir-status" role="status" aria-live="polite" aria-atomic="true"></div>
+      <dl class="ir-metrics">
+        <div><dt>Snowflake source · USD</dt><dd id="ir-source-total"></dd></div>
+        <div><dt>Power BI model · USD</dt><dd id="ir-model-total"></dd></div>
+        <div><dt>Source minus model · USD</dt><dd id="ir-gap"></dd></div>
+      </dl>
+      <h3>Which dates did we revisit?</h3>
+      <div id="ir-months" class="ir-months" aria-label="History and last refresh coverage"></div>
+      <p id="ir-work" class="ir-help"></p>
+      <p class="ir-help">Months group this illustration, not actual Power BI partition names. The service manages partition boundaries and can merge older partitions.</p>
+      <div class="table-scroll ir-table" role="region" aria-label="Shipment values in source and model; scroll horizontally on small screens" tabindex="0">
+        <table>
+          <caption>Source versus imported values · all charges in USD</caption>
+          <thead><tr><th scope="col">Shipment</th><th scope="col">Shipped</th><th scope="col">Snowflake</th><th scope="col">Power BI</th><th scope="col">What happened</th></tr></thead>
+          <tbody id="ir-rows"></tbody>
+        </table>
+      </div>
+      <p class="ir-help">Scroll the table sideways on a small screen. No credentials, uploads or browser storage are used.</p>
+    </div>
+  </div>
+
+  <h2>The part I would not skip</h2>
+  <p>
+    The model starts at <strong>$2,100</strong>. The change script adds a $700 shipment,
+    corrects a recent charge by $50, and corrects the May charge by $80.
+    The source now totals <strong>$2,930</strong>.
+  </p>
+  <p>
+    A three-day refresh brings the model to <strong>$2,850</strong>. It loads the new row and
+    the recent correction, but it does not revisit May. Nothing has failed technically:
+    the policy did exactly what it was told. Reprocessing the affected history brings the model to $2,930.
+  </p>
+  <p>
+    Making the window 30 days still misses this correction. Making it 150 days catches it,
+    but also re-reads more history. I would choose that window from how far back the business
+    actually corrects records, not just from how fast I want a refresh to finish.
+  </p>
+
+  <h2>Keep the date filter close to the source</h2>
+  <p>
+    The SQL creates a small source table and a reporting view. The view keeps
+    <code>SHIPPED_AT</code> as a timestamp instead of converting it to formatted text.
+    In Power Query, I navigate to that view and filter it before adding other transformations:
+  </p>
+  <pre><code>Filtered = Table.SelectRows(
+    Shipments,
+    each [SHIPPED_AT] &gt;= RangeStart
+      and [SHIPPED_AT] &lt; RangeEnd
+)</code></pre>
+  <p>
+    <code>RangeStart</code> and <code>RangeEnd</code> are case-sensitive Date/Time parameters.
+    Including the start and excluding the end means a record at midnight belongs to one
+    interval, not both. The source uses <code>TIMESTAMP_NTZ</code> with a UTC convention;
+    that convention must also hold for the parameters. NTZ does not store a time zone.
+  </p>
+  <p>
+    This is a folding-friendly shape, not proof of folding. Before using the policy, I would
+    inspect the queries sent to Snowflake and confirm that both timestamp bounds reach the source.
+    Reading the whole view and filtering it locally can produce the right numbers while defeating
+    the point of incremental refresh. A disabled “View Native Query” option alone is not a conclusive test.
+  </p>
+
+  <h2>Reproduce it in Desktop and the service</h2>
+  <ol class="ir-steps">
+    <li><strong>Use a sandbox.</strong> Run the setup SQL in your own Snowflake database/schema.
+      It creates project-specific objects and six synthetic records. Use a small warehouse;
+      executing queries and refreshing Power BI can incur Snowflake charges.</li>
+    <li><strong>Load the reporting view.</strong> Create the two Date/Time parameters in Desktop,
+      paste the M query, replace the connection placeholders, and use Import mode.
+      For the fixed-date example, preview <code>2026-09-21 00:00:00</code> through
+      <code>2026-09-24 00:00:00</code>. Expect two initial rows, then three after the change script.</li>
+    <li><strong>Set the table policy.</strong> As an example, store five months and refresh three days.
+      Turn on “Only refresh complete days”; leave real-time DirectQuery and “Detect data changes” off.
+      Use UTC for the service refresh time zone.
+      The browser uses an explicit cutoff and complete date intervals, not the service's current clock.</li>
+    <li><strong>Publish and establish the baseline.</strong> Configure Snowflake credentials in the service
+      and complete the first refresh before applying changes. That first refresh loads the retained
+      history; the narrow Desktop preview is not the historical model.</li>
+    <li><strong>Apply the changes and reconcile.</strong> Run the second SQL script, refresh the model,
+      then compare charges by shipment month as well as the grand total. The setup notes explain
+      how to align the fixed example dates with the day you actually run the service.</li>
+  </ol>
+  <div class="ir-note">
+    <strong>The service uses a moving clock.</strong>
+    <p>September 2026 is frozen here to make the example repeatable. A real service policy uses
+      its refresh date and configured time zone. Do not expect these fixed rows to remain inside a
+      three-day window when you run the project later. Follow the date-alignment steps in the setup notes.</p>
+  </div>
+  <p>
+    For a minimal report, add <code>Total charge = SUM(Shipments[NET_CHARGE])</code>, a shipment-count
+    measure, and a month-by-month matrix. The useful result is not a fancy dashboard; it is
+    seeing a source correction that the imported model has not yet received.
+  </p>
+
+  <h2>Why not filter on the last-updated timestamp?</h2>
+  <p>
+    I keep the partition filter on a stable shipment timestamp. If I partitioned by
+    <code>UPDATED_AT</code>, an update could move a row into a new date interval while its old
+    imported copy remained in an interval that was not refreshed.
+    The business key would then appear twice.
+  </p>
+  <p>
+    “Detect data changes” serves a different purpose: it can use an audit column to decide
+    which periods within the refresh range need processing. It is not a search for corrections
+    across all archived history. Hard deletes need a separate strategy too; they do not
+    reliably change the maximum audit timestamp.
+  </p>
+  <p>
+    For an older correction, I would identify the affected period, agree the backfill with the
+    team, and explicitly reprocess it where the workspace supports that operation.
+    Targeted XMLA processing requires an appropriate capacity or licence, permissions and a
+    read/write endpoint. Ordinary scheduled refresh is not a historical repair button.
+    Without that tooling, widening the policy or rebuilding the model is a planned operation
+    with reload and deployment consequences, not something this demo performs.
+  </p>
+
+  <section class="ir-downloads" aria-labelledby="ir-files-title">
+    <p class="eyebrow">Build files</p>
+    <h2 id="ir-files-title">Take the example apart</h2>
+    <p>SQL, M and a setup walkthrough. No credentials included. These have not been executed
+      against a live Snowflake account or Power BI tenant here; there is no finished PBIX or measured refresh benchmark.</p>
+    <ul>
+      <li><a href="assets/incremental-refresh-setup.sql" download>01 · Snowflake table, view and baseline checks (.sql)</a></li>
+      <li><a href="assets/incremental-refresh.pq" download>02 · Power Query connection and date filter (.pq)</a></li>
+      <li><a href="assets/incremental-refresh-changes.sql" download>03 · New shipment and late corrections (.sql)</a></li>
+      <li><a href="assets/incremental-refresh-setup.txt" download>Read the setup and reconciliation notes (.txt)</a></li>
+    </ul>
+  </section>
+
+  <div class="article-references">
+    <h2>References I would keep open</h2>
+    <ul>
+      <li><a href="https://learn.microsoft.com/en-us/power-bi/connect-data/incremental-refresh-overview">Microsoft: incremental refresh, supported plans and partition behaviour</a></li>
+      <li><a href="https://learn.microsoft.com/en-us/power-bi/connect-data/incremental-refresh-configure">Microsoft: parameters, policies and detecting changes</a></li>
+      <li><a href="https://learn.microsoft.com/en-us/power-query/connectors/snowflake">Microsoft: the Snowflake connector</a></li>
+    </ul>
+  </div>
+  <footer class="article-footer">
+    <p>Built by <strong>Martin Padilla Schekaiban</strong>. A reporting-layer experiment with synthetic shipment data.</p>
+    <a href="star-schema.html">Related: when monthly snapshots get counted as new claims →</a>
+  </footer>
+</article>
+</main>
+<footer class="site"><div class="wrap"><a href="index.html#work">← All writing &amp; projects</a></div></footer>
+<script src="assets/incremental-refresh.js"></script>
+<script src="assets/incremental-refresh-ui.js"></script>
+</body>
+</html>

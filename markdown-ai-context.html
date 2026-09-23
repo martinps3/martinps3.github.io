@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The context I'd give an AI agent before touching a Power BI model</title>
+<meta name="description" content="A practical Markdown brief for AI-assisted Power BI work: shipment grain, business definitions, edit boundaries and small checks with expected results.">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/field-notes.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site">
+  <div class="wrap">
+    <a class="name" href="index.html"><span class="brand-mark" aria-hidden="true">MP</span>Martin Padilla Schekaiban</a>
+    <nav aria-label="Main navigation">
+      <a href="index.html#work">Work</a>
+      <a href="index.html#skills">Skills</a>
+      <a href="index.html#contact">About</a>
+    </nav>
+  </div>
+</header>
+<main class="wrap reading" id="main">
+<a class="back" href="index.html#work">← All writing &amp; projects</a>
+<article class="article-notes field-notes">
+  <p class="eyebrow">At the workbench · AI context</p>
+  <h1>The context I'd give an AI agent before touching a Power BI model</h1>
+  <div class="byline"><time datetime="2026-09">September 2026</time> <span class="dot">·</span> 6 min read <span class="dot">·</span> Martin Padilla Schekaiban</div>
+
+  <p>
+    “Add average freight charge to the report” sounds like a small request.
+    It stops being small when the agent has to guess whether a row means a shipment,
+    a charge line, or a monthly snapshot. All three can have a column called
+    <code>NET_CHARGE</code>. They do not necessarily support the same calculation.
+  </p>
+  <p>
+    Before asking for DAX, I would write down the decisions that the model files cannot
+    reliably explain. A short Markdown file is a convenient place for that.
+    The useful part is the content, not the extension.
+  </p>
+  <p class="fn-scope">
+    This example uses the fictional shipments from my
+    <a href="snowflake-etl.html">incremental-refresh project</a>. It is a sample handoff,
+    not a description of an employer's model or internal AI setup.
+  </p>
+
+  <figure class="fn-diagram">
+    <div class="figure-scroll" role="region" aria-label="Context brief diagram; scroll horizontally on a narrow screen" tabindex="0">
+      <img src="assets/context-brief-map.svg" width="880" height="440" alt="Facts, business decisions and expected results feed a context brief. The agent reads that brief with the current model before proposing a change.">
+    </div>
+    <figcaption><b>Start with the missing decisions.</b> A schema can show a charge column.
+      It cannot tell the agent which definition of average the business wants.
+      <span class="fn-scroll-hint">Scroll the diagram sideways on a small screen.</span></figcaption>
+  </figure>
+
+  <h2>Start with the thing that can go wrong</h2>
+  <p>
+    For this model, I want average charge per shipment in the current filter context.
+    Not average charge per carrier, and not average per event record. That distinction belongs
+    in the brief before naming a particular DAX function.
+  </p>
+  <pre aria-label="Example Markdown brief" tabindex="0"><code># Shipment reporting: model context
+
+## What one row means
+- Shipments contains one current row per SHIPMENT_ID.
+- NET_CHARGE is the total shipment charge in USD.
+- No currency conversion is needed in this example.
+
+## Requested calculation
+Average charge = total charge / shipment count
+within the current report filters.
+
+Do not average carrier-level averages.
+Do not remove filters to make the total match.</code></pre>
+  <p>
+    An agent can inspect the schema and find a unique shipment ID. That is evidence about
+    these rows, not proof of the business definition. If the brief says one row per shipment
+    but the source repeats IDs, I want it to stop and show the mismatch, rather than hide it
+    with a distinct count.
+  </p>
+
+  <h2>You only need a little Markdown</h2>
+  <p>
+    Save a plain-text file with an <code>.md</code> extension and open it in an editor.
+    A heading starts with <code>#</code>; <code>##</code> introduces a section.
+    A hyphen starts a list item. Backticks distinguish a field name such as
+    <code>SHIPMENT_ID</code> from surrounding prose.
+  </p>
+  <p>
+    I would use a fenced code block for an expression or a query, so its line breaks stay
+    readable. A relative link can point to a nearby definition or SQL file.
+    That is enough for this brief. It does not need badges, a large table of contents,
+    or a separate section for every column.
+  </p>
+  <figure class="fn-source-preview">
+    <figcaption>The same brief, as plain text and as a document</figcaption>
+    <div class="fn-preview-grid">
+      <div class="fn-source-pane">
+        <p class="fn-pane-label">What you write · .md</p>
+        <pre tabindex="0"><code>## Before editing
+Read `Shipments.tmdl` and show the existing measures.
+
+**Do not change relationships for this task.**
+
+See [source checks](incremental-refresh-setup.sql).</code></pre>
+      </div>
+      <div class="fn-preview-pane">
+        <p class="fn-pane-label">What the reader sees</p>
+        <h3>Before editing</h3>
+        <p>Read <code>Shipments.tmdl</code> and show the existing measures.</p>
+        <p><strong>Do not change relationships for this task.</strong></p>
+        <p>See <a href="assets/incremental-refresh-setup.sql" download>source checks</a>.</p>
+      </div>
+    </div>
+    <p class="fn-caption">The heading groups the task, the code spans identify objects, and the
+      relative link points to the SQL beside the downloadable brief. Formatting helps readers;
+      it is not an instruction-priority system.</p>
+  </figure>
+
+  <h2>Separate a model fact from today's request</h2>
+  <p>
+    “Charges are in USD” should remain useful next week.
+    “Add an average-charge measure” should not become a permanent instruction that an agent
+    keeps trying to carry out. I would keep the first in model context and the second in
+    the current task.
+  </p>
+  <p>
+    The downloadable brief separates durable definitions from a worked task.
+    Before using it in another model, replace the assumptions and remove the worked task
+    once it is finished. A stale instruction can be harder to spot than a missing one,
+    especially when it is written confidently.
+  </p>
+  <p>
+    The same applies to uncertainty. If cancellation rules have not been agreed, write
+    “cancellation treatment is unresolved; ask before implementing.” Do not fill the gap
+    with whichever rule makes the sample total look sensible.
+    This particular fixture has no cancellation field, so it cannot settle that question.
+  </p>
+
+  <h2>Give the agent a result it can disagree with</h2>
+  <p>
+    “Validate the measure” leaves too much open. For the six initial shipments,
+    the charge total is $2,100 and the shipment count is six, so the expected average is
+    $350. Filtering to the two shipments dated September 21 and 22 gives $1,100 across
+    two shipments, or $550.
+  </p>
+  <div class="table-scroll fn-checks" role="region" aria-label="Expected average-charge checks" tabindex="0">
+    <table>
+      <caption>Initial fixture, before the correction script</caption>
+      <thead><tr><th scope="col">Scope</th><th scope="col">Charge</th><th scope="col">Shipments</th><th scope="col">Average</th></tr></thead>
+      <tbody>
+        <tr><th scope="row">All six rows</th><td>$2,100</td><td>6</td><td>$350</td></tr>
+        <tr><th scope="row">September 21–22</th><td>$1,100</td><td>2</td><td>$550</td></tr>
+        <tr><th scope="row">No matching shipments</th><td>Blank</td><td>Blank or 0*</td><td>Blank</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="fn-caption">*The count display depends on the existing count measure. The requested average
+    uses <code>DIVIDE</code> without an alternate result, so an empty or zero denominator returns blank.</p>
+  <p>
+    Those checks are small enough to understand without trusting an agent's explanation.
+    They also give it a reason to challenge the instructions if the actual model behaves
+    differently. After the correction script, the old $350 expectation no longer applies.
+    A useful check names its data state, not just its expected number.
+  </p>
+
+  <h2>A file is not automatically in the conversation</h2>
+  <p>
+    I would place supporting documentation in a <code>docs</code> folder alongside the
+    project definitions, then explicitly ask the agent to read the brief and the relevant
+    model files. A normal Markdown document is not automatically loaded just because it
+    exists in the repository.
+  </p>
+  <p>
+    Some tools recognise specific instruction filenames or folders. The names, scope and
+    precedence depend on the tool, so I would check its documentation instead of assuming
+    that every agent reads every <code>.md</code> file. I also would not store arbitrary
+    notes inside generated model definitions and assume Power BI will preserve them.
+  </p>
+  <div class="fn-request">
+    <p class="eyebrow">The actual request</p>
+    <p>Read the context brief and the current shipment measures. Tell me what you can confirm,
+      what conflicts, and which files you would change. Do not edit yet. If the grain or
+      charge definition is unclear, ask before proposing DAX.</p>
+  </div>
+  <p>
+    That gives me a checkpoint before the edit. Afterwards I would ask for the changed
+    expression, the checks actually run, and anything still unverified.
+    Clear Markdown helps communicate the work; it does not grant permissions, enforce
+    read-only access, or prove that the work is correct.
+  </p>
+  <p>
+    Keep credentials and client data out of the brief. Table names, source queries and
+    business definitions can also be sensitive, even without sample rows. Use only material
+    approved for the tool and environment.
+  </p>
+
+  <aside class="fn-download" aria-labelledby="context-download-title">
+    <h2 id="context-download-title">A brief you can edit</h2>
+    <p>A small Markdown file with the shipment assumptions, worked task and expected results.
+      Replace the example details before using it elsewhere.</p>
+    <a class="button button-primary" href="assets/shipment-model-context.md" download>Download the context brief (.md)</a>
+  </aside>
+
+  <div class="article-references">
+    <h2>What prompted this note</h2>
+    <p>Tabular Editor's <a href="https://tabulareditor.com/blog/markdown-and-ai-context-for-beginners">A beginner’s guide to writing Markdown for AI context</a>
+      prompted this example. Their article introduces the format; this note focuses on
+      the information I would supply for one reporting change.</p>
+    <p>For the syntax itself, see
+      <a href="https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax">GitHub's Markdown reference</a>.</p>
+  </div>
+  <footer class="article-footer">
+    <p>Written by <strong>Martin Padilla Schekaiban</strong>. All shipment values and task instructions here are illustrative.</p>
+    <a href="pbip-review.html">Next: reviewing the Power BI project change →</a>
+  </footer>
+</article>
+</main>
+<footer class="site"><div class="wrap"><a href="index.html#work">← All writing &amp; projects</a></div></footer>
+</body>
+</html>

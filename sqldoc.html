@@ -3,13 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>sqldoc — explaining a SQL report without reading the SQL</title>
-<meta name="description" content="A zero-dependency Python tool that turns a SQL file into plain-language documentation: output columns with lineage, source tables, joins and filters.">
+<title>sqldoc: tracing a report back to its SQL</title>
+<meta name="description" content="Try a browser-based SQL documentation tool, then read about alias resolution, parsing tradeoffs and the queries it does not handle.">
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
 <a class="skip-link" href="#main">Skip to content</a>
-
 <header class="site">
   <div class="wrap">
     <a class="name" href="index.html"><span class="brand-mark" aria-hidden="true">MP</span>Martin Padilla Schekaiban</a>
@@ -23,52 +22,30 @@
 
 <main class="wrap reading" id="main">
 <a class="back" href="index.html#work">← All writing &amp; projects</a>
-
-<article>
-  <p class="eyebrow">Project / SQL documentation</p>
-  <h1>sqldoc: explaining a report without reading the SQL</h1>
-  <p class="sub">
-    A small tool for the question I get asked more than any other.
-  </p>
+<article class="article-project">
+  <p class="eyebrow">Project notebook · Python &amp; SQL</p>
+  <h1>sqldoc: tracing a report back to its SQL</h1>
   <div class="byline">
-    September 2026 <span class="dot">·</span> Python, SQL, tooling <span class="dot">·</span> 5 min read
-    <span class="dot">·</span>
-    <a href="https://github.com/martinps3/sqldoc" style="color:var(--accent);text-decoration:none">Source on GitHub</a>
+    <time datetime="2026-06">June 2026</time> <span class="dot">·</span> 4 min read
+    <span class="dot">·</span> <a href="https://github.com/martinps3/sqldoc">Source on GitHub</a>
   </div>
 
   <p>
-    The most common question I get isn't technical. It's "what's actually in this report?" — usually
-    from a scrum master sizing a change, or an analyst checking whether a number they've been handed
-    means what they think it means.
+    “What's in this report?” usually sends me back to the SQL. The report name might tell me its
+    purpose, but it won't tell me which statuses were excluded, how a field was calculated, or
+    whether a join changes the grain. Answering properly means following the query.
+  </p>
+  <p>
+    I built sqldoc to make that first pass quicker. It reads a reporting query and lists its
+    output columns, source references, joins and filters. The Python version produces Markdown
+    or JSON; the version below runs in the browser.
   </p>
 
+  <h2 id="try-it">Try a query</h2>
   <p>
-    Answering it properly means opening 300 lines of SQL, tracing where each output column came from,
-    and translating that into a sentence. It takes fifteen minutes and interrupts whatever I was
-    doing. Multiply by a reporting portfolio of any size and it becomes a real tax.
-  </p>
-
-  <p>
-    So I wrote something to answer it for me.
-  </p>
-
-  <figure>
-    <div class="figure-scroll" role="region" aria-label="SQL documentation flow diagram" tabindex="0">
-      <img src="assets/sqldoc-flow.svg" alt="A SQL file with CTEs goes in; structured documentation comes out listing source tables, output columns with their lineage, and filters.">
-    </div>
-    <figcaption>
-      <span class="scroll-hint">Scroll horizontally to see the full diagram.</span>
-      <b>Point it at a .sql file, get back what the report does.</b> The useful part is the middle
-      column — where each output field actually comes from, with aliases resolved.
-    </figcaption>
-  </figure>
-
-  <h2>Try it</h2>
-
-  <p>
-    This is the real parser, ported to JavaScript and running in your browser — nothing is sent
-    anywhere. Paste your own query over the example, or pick one of the presets. Hover an output
-    column in the diagram to trace it back to its source.
+    Choose a preset or replace the SQL with your own example. The output updates as you type.
+    On a computer, hover over an output column in the diagram to highlight its source connections.
+    The tables below contain the same references and can be scrolled on a phone.
   </p>
 
   <div class="pg">
@@ -81,155 +58,101 @@
     <div id="pg-graph" role="region" aria-label="SQL lineage diagram" tabindex="0"></div>
     <div class="pg-body" id="pg-output"></div>
   </div>
-
   <p class="pg-cap">
-    Parses locally, so feel free to paste something real — it never leaves the page.
+    Parsing runs locally; this page does not send your query to a server. Use public or sanitised
+    examples if your organisation restricts where work queries can be pasted.
   </p>
 
-  <h2>What it does</h2>
+  <h2>What I wanted from the output</h2>
+  <p>
+    A useful description needs more than a list of table names. If an output column is called
+    <code>category</code>, I want to know that it refers to <code>sales.products.category_name</code>,
+    rather than just being told it comes from the alias <code>p</code>.
+    That is the part of the output I look at first.
+  </p>
+  <p>
+    CTEs need their own treatment. They are intermediate steps, not physical source tables.
+    The tool lists base tables separately and keeps intermediate references where it cannot
+    fully resolve them. An expression involving a CTE may therefore still point to that CTE;
+    this isn't a complete lineage engine.
+  </p>
+
+<pre><code>SELECT
+    p.category_name AS category,
+    SUM(oi.quantity * oi.unit_price) AS revenue
+FROM sales.order_items oi
+JOIN sales.products p ON p.product_id = oi.product_id
+GROUP BY p.category_name;</code></pre>
 
   <p>
-    Given a query, it reports the output columns and the expression behind each one, the base tables
-    it reads (CTEs and subqueries excluded, which matters more than it sounds), the joins with their
-    conditions, the filters, and the grain — <code>GROUP BY</code>, <code>DISTINCT</code>, row limits.
-    Output is Markdown for people or JSON for anything else.
+    Here, <code>category</code> has one direct source. Revenue has two inputs and an aggregation.
+    Neither observation tells us whether the join is correct for the data. The parser doesn't
+    connect to a database, inspect uniqueness, or execute the query.
   </p>
+
+  <h2>Keeping it small has a cost</h2>
+  <p>
+    The Python tool has no third-party dependencies. I wanted something that could run where
+    installing packages requires an approval process, even for a small documentation job.
+    For a broader SQL transformation or lineage project, I'd start with
+    <a href="https://github.com/tobymao/sqlglot">SQLGlot</a> instead.
+  </p>
+  <p>
+    Most of the care in this implementation is in the scanner. Splitting on commas is only safe
+    when those commas aren't inside a function call, a quoted string, or a nested query.
+    Finding a <code>WHERE</code> clause has similar complications:
+  </p>
+
+<pre><code>SELECT 'a, b' AS label
+SELECT fn(a, b) AS result
+SELECT *
+FROM (SELECT id FROM source WHERE active = 1) s
+WHERE s.id &gt; 100
+SELECT col -- WHERE is part of a comment here
+FROM source</code></pre>
 
   <p>
-    The part I care about most is alias resolution. Most queries alias everything to single letters,
-    so a naive tool tells you <code>category</code> comes from <code>p</code>. Useless. Resolving that
-    back to <code>sales.products</code> is what makes the output worth reading:
+    The scanner tracks quotes, comments and bracket depth so the later parsing steps can work on
+    the relevant part of the statement. That solves a useful subset of the problem without
+    implementing the grammar of every SQL dialect.
   </p>
-
-<pre><code>| Column         | Comes from                     | Notes             |
-| -------------- | ------------------------------ | ----------------- |
-| order_month    | monthly_orders.order_month     |                   |
-| category       | sales.products.category_name   |                   |
-| order_count    | monthly_orders.order_id        | aggregated        |
-| revenue_band   | order_revenue.gross_revenue    | conditional logic |
-</code></pre>
-
-  <h2>Why I didn't use a parser library</h2>
-
   <p>
-    If you're building something serious, use <a href="https://github.com/tobymao/sqlglot">sqlglot</a>.
-    It has a real grammar, handles dialects properly, and does lineage. I'm not pretending to
-    compete with it.
+    One bug in the Python version came from checking word boundaries around a separator that
+    already included spaces. Splitting on <code>" and "</code> left two conditions together.
+    A filter-count assertion caught it; merely checking that the parser returned a result would
+    not have done so. Cases like that are why I care about the contents of the output, not just
+    whether a query parses without an exception.
   </p>
 
-  <p>
-    I went zero-dependency for a specific reason: a lot of corporate BI environments are locked down
-    hard enough that <code>pip install</code> isn't a thing you can rely on. A tool that runs on a
-    bare Python install is a tool that actually gets used. That constraint turned out to be a design
-    input rather than an obstacle.
-  </p>
-
-  <p>
-    What it costs is coverage, and I'd rather be upfront about that than oversell it.
-  </p>
-
-  <h3>The bit that's actually hard</h3>
-
-  <p>
-    Splitting a query into clauses sounds trivial until you try it. All of these will break a naive
-    <code>.split(",")</code> or a regex for <code>WHERE</code>:
-  </p>
-
-<pre><code>SELECT 'a, b'  AS label        -- comma inside a string literal
-SELECT fn(a, b) AS x           -- comma inside a function call
-SELECT * FROM (
-    SELECT 1 WHERE z = 1       -- WHERE belonging to a subquery
-) s WHERE a = 1
-SELECT col -- WHERE is not here
-FROM t
-SELECT wherever FROM t         -- keyword as a substring
-</code></pre>
-
-  <p>
-    So the core is a scanner that walks the string tracking bracket depth and whether it's inside a
-    literal, and only splits at depth zero outside quotes. Everything else builds on that. It's about
-    a hundred lines and it's the reason the rest of the tool can stay simple.
-  </p>
-
-  <p>
-    That's also where the tests are concentrated — 29 of them, and the ones that earn their keep are
-    the nasty inputs above rather than the happy path.
-  </p>
-
-  <h3>One bug worth mentioning</h3>
-
-  <p>
-    My word-boundary check rejected any separator that already contained whitespace. Splitting a
-    <code>WHERE</code> clause on <code>" and "</code> silently returned one condition instead of two,
-    because the character after the separator is legitimately the start of the next token — the check
-    was asking for a non-alphanumeric character that could never be there.
-  </p>
-
-  <p>
-    It only surfaced because a test asserted a filter count rather than just checking the thing
-    didn't throw. A test that had asserted "returns a list" would have passed happily and shipped
-    wrong documentation, which for a tool like this is worse than crashing.
-  </p>
-
-  <h2>What it won't do</h2>
-
-  <ul>
-    <li><code>INSERT</code>, <code>UPDATE</code>, <code>MERGE</code> — reporting queries only</li>
-    <li><code>UNION</code> branches aren't split out separately</li>
-    <li><code>SELECT *</code> stays opaque; expanding it needs a schema it doesn't have</li>
-    <li>Deeply nested correlated subqueries get summarised rather than traced</li>
-  </ul>
-
-  <p>
-    It's built to say less rather than guess. A documentation tool that invents lineage is worse than
-    no tool at all, because people believe it.
-  </p>
-
-  <h2>Where it goes next</h2>
-
-  <p>
-    The JSON output is the interesting half. Once a query's structure is machine-readable you can put
-    it behind a search index, feed it into a data catalogue, or hand it to an LLM as grounding — which
-    connects directly to
-    <a href="mcp-power-bi.html">the MCP work</a>: same principle, different layer. Give the model the
-    facts instead of letting it guess.
-  </p>
-
-  <div class="note">
+  <aside class="note" aria-label="Parser limitations">
     <p>
-      Written from scratch on public example SQL. No employer queries, schema or data were used.
-      Code is on <a href="https://github.com/martinps3/sqldoc">GitHub</a> under MIT.
+      This is for <code>SELECT</code> queries. It doesn't document writes such as
+      <code>MERGE</code>, separate every <code>UNION</code> branch, expand <code>SELECT *</code>
+      without a schema, or fully trace deeply nested correlated subqueries. Check the source SQL
+      before relying on the result.
     </p>
-  </div>
+  </aside>
 
+  <h2>Where it fits in a reporting workflow</h2>
+  <p>
+    I'd keep the generated documentation beside the query so it can be regenerated when the query
+    changes. A reviewer can then see that a filter disappeared or a source table changed without
+    comparing two long descriptions by hand.
+  </p>
+  <p>
+    The JSON is also useful as input to an agent writing a first draft of a report explanation.
+    It provides a set of extracted references to work from, with the original SQL still available
+    for checking. It cannot supply definitions such as what “delivered” means to the business.
+    Those belong in the model documentation.
+  </p>
+
+  <footer class="article-footer">
+    <p>Built by <strong>Martin Padilla Schekaiban</strong> using public example SQL. Source is available under MIT.</p>
+    <a href="mcp-power-bi.html">Related: making model metadata available to an agent →</a>
+  </footer>
 </article>
-
-<section>
-  <div class="about">
-    <div class="initials">MP</div>
-    <div>
-      <p>
-        I'm Martin — a BI developer working mostly in Power BI, Snowflake and SSRS on supply chain
-        reporting. I write here now and then about modelling problems and the tooling I build around
-        them.
-      </p>
-      <p>
-        <a href="https://www.linkedin.com/in/martinschekaiban/" style="color:var(--accent);text-decoration:none">LinkedIn</a>
-        <span style="color:var(--faint)"> · </span>
-        <a href="index.html" style="color:var(--accent);text-decoration:none">More writing</a>
-      </p>
-    </div>
-  </div>
-</section>
-
 </main>
-
-<footer class="site">
-  <div class="wrap">
-    <a href="index.html">← All work</a>
-  </div>
-</footer>
-
+<footer class="site"><div class="wrap"><a href="index.html#work">← All writing &amp; projects</a></div></footer>
 <script src="assets/sqldoc.js"></script>
 <script src="assets/playground.js"></script>
 </body>

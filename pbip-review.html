@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>What I review in a Power BI project before publishing</title>
+<meta name="description" content="Follow a shipment measure change through a PBIP project: TMDL model definitions, PBIR report files, a readable Git diff and checks that still require Power BI.">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/field-notes.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site">
+  <div class="wrap">
+    <a class="name" href="index.html"><span class="brand-mark" aria-hidden="true">MP</span>Martin Padilla Schekaiban</a>
+    <nav aria-label="Main navigation">
+      <a href="index.html#work">Work</a>
+      <a href="index.html#skills">Skills</a>
+      <a href="index.html#contact">About</a>
+    </nav>
+  </div>
+</header>
+<main class="wrap reading" id="main">
+<a class="back" href="index.html#work">← All writing &amp; projects</a>
+<article class="article-project field-notes">
+  <p class="eyebrow">A change under review · PBIP &amp; Git</p>
+  <h1>What I review in a Power BI project before publishing</h1>
+  <div class="byline"><time datetime="2026-09">September 2026</time> <span class="dot">·</span> 7 min read <span class="dot">·</span> Martin Padilla Schekaiban</div>
+
+  <p>
+    The request is to fix average charge per shipment. The card still looks the same,
+    but the total changes from $300 to $350. Before publishing, I want to see the
+    expression that changed and explain why the new number is right.
+  </p>
+  <p>
+    That is the practical reason I am interested in PBIP. It makes much of the report
+    and model definition available as text files, where a small change can be reviewed
+    in Git. It does not make a calculation correct, but it makes the calculation harder
+    to hide inside “the new version of the report.”
+  </p>
+  <p class="fn-scope">
+    This is a worked review using fictional shipments. The folder tree and diff below
+    are illustrative excerpts, not an exported, runnable Power BI project.
+  </p>
+
+  <figure class="fn-diagram">
+    <div class="figure-scroll" role="region" aria-label="Model and report metadata diagram; scroll horizontally on a narrow screen" tabindex="0">
+      <img src="assets/pbip-review-map.svg" width="880" height="458" alt="TMDL defines the average-charge calculation. PBIR binds a report card to that measure and defines its appearance. Together they produce the displayed 350-dollar result.">
+    </div>
+    <figcaption><b>Follow the number, then the presentation.</b> These are separate review
+      surfaces even when they end up on the same card.
+      <span class="fn-scroll-hint">Scroll the diagram sideways on a small screen.</span></figcaption>
+  </figure>
+
+  <h2>Find the calculation, not the card</h2>
+  <p>
+    A report visual has a position, formatting, filters and references to fields.
+    A model measure has an expression and a format string, and relies on the model's
+    tables and relationships. Both affect what the user sees, but they live in different
+    parts of the project.
+  </p>
+  <figure class="fn-paper">
+    <figcaption>A few files I would locate in a TMDL/PBIR project</figcaption>
+    <pre class="fn-tree" tabindex="0" aria-label="Illustrative Power BI project folder tree"><code>ShipmentReview.pbip
+ShipmentReview.SemanticModel\
+    definition.pbism
+    definition\
+        tables\
+            Shipments.tmdl
+ShipmentReview.Report\
+    definition.pbir
+    definition\
+        pages\
+            &lt;page-id&gt;\
+                visuals\
+                    &lt;visual-id&gt;\
+                        visual.json
+docs\
+    model-context.md
+.gitignore</code></pre>
+  </figure>
+  <p>
+    The <code>.pbip</code> file points to a report; it is not the whole project on its own.
+    <code>definition.pbir</code> includes the report's model reference.
+    With a local model reference, opening the project brings up the report and model.
+    A thin report can instead reference a published model and have no local semantic-model folder.
+  </p>
+  <p>
+    In this example, <code>Shipments.tmdl</code> contains the table's model metadata,
+    including measures assigned to it. TMDL is the model-definition language; PBIR is the
+    report-definition format. Some projects still use <code>model.bim</code> for the model
+    or the legacy <code>report.json</code> for the report. Saving as PBIP does not imply
+    that every project has exactly the tree above.
+  </p>
+
+  <h2>The wrong average can look quite reasonable</h2>
+  <p>
+    Take the six initial charges from the <a href="snowflake-etl.html">refresh example</a>:
+    $100, $200, $300, $400, $500 and $600. For this review only, assign the first two
+    shipments to fictional carrier Alder and the other four to Beacon.
+    That carrier field is an extension for this explanation, not part of the SQL download.
+  </p>
+  <div class="table-scroll fn-checks" role="region" aria-label="Shipment-weighted versus carrier-weighted averages" tabindex="0">
+    <table>
+      <caption>Same shipments, two possible meanings of “average”</caption>
+      <thead><tr><th scope="col">Carrier</th><th scope="col">Shipments</th><th scope="col">Total charge</th><th scope="col">Average charge</th></tr></thead>
+      <tbody>
+        <tr><th scope="row">Alder</th><td>2</td><td>$300</td><td>$150</td></tr>
+        <tr><th scope="row">Beacon</th><td>4</td><td>$1,800</td><td>$450</td></tr>
+        <tr><th scope="row">All shipments</th><td>6</td><td>$2,100</td><td>$350</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>
+    Averaging $150 and $450 gives $300. It gives each carrier the same weight,
+    even though Beacon has twice as many shipments.
+    That could be a valid metric, but it is not the requested average per shipment.
+  </p>
+  <figure class="fn-diff">
+    <figcaption>Illustrative Git diff · Shipments.tmdl · other properties omitted</figcaption>
+    <pre tabindex="0" aria-label="Measure diff: remove the average of carrier averages and use total charge divided by shipment count"><code> measure 'Average charge' =
+<span class="fn-removed">-    AVERAGEX(</span>
+<span class="fn-removed">-        VALUES(Shipments[CARRIER]),</span>
+<span class="fn-removed">-        CALCULATE(AVERAGE(Shipments[NET_CHARGE]))</span>
+<span class="fn-removed">-    )</span>
+<span class="fn-added">+    DIVIDE([Total charge], [Shipment count])</span></code></pre>
+  </figure>
+  <p>
+    For this fixture, <code>[Total charge]</code> sums <code>NET_CHARGE</code> and
+    <code>[Shipment count]</code> counts rows. That count is appropriate only because the
+    intended grain is one row per shipment. I would inspect both existing definitions before
+    accepting the shorter expression.
+  </p>
+  <p>
+    At each carrier row, the old and new expressions return the same result.
+    The grand total exposes the difference. That is why my review needs the total row,
+    not just a screenshot with a carrier selected.
+  </p>
+
+  <figure class="fn-report-compare">
+    <figcaption>Same card and filters. Different weighting at the total.</figcaption>
+    <div class="fn-preview-grid">
+      <div class="fn-report-card">
+        <p class="fn-pane-label">Before · carriers weighted equally</p>
+        <p>Average charge / shipment</p>
+        <strong class="fn-card-value">$300</strong>
+        <p class="fn-card-detail">($150 + $450) / 2 carriers</p>
+      </div>
+      <div class="fn-report-card fn-card-corrected">
+        <p class="fn-pane-label">After · shipments weighted equally</p>
+        <p>Average charge / shipment</p>
+        <strong class="fn-card-value">$350</strong>
+        <p class="fn-card-detail">$2,100 / 6 shipments</p>
+      </div>
+    </div>
+    <p class="fn-caption">Illustrated report cards, not Power BI screenshots. The label alone
+      does not reveal that the first calculation uses the wrong denominator for this request.</p>
+  </figure>
+
+  <h2>Read the rest of the diff too</h2>
+  <p>
+    For a measure-only correction, I expect a small model change. If the report pages,
+    relationships or source expressions also changed, I want to know why. They are not
+    automatically wrong, but they should not slip through as incidental formatting.
+  </p>
+  <pre tabindex="0" aria-label="Read-only Git review commands"><code>git status --short
+git diff --stat
+git diff -- ShipmentReview.SemanticModel
+git diff -- ShipmentReview.Report
+git diff --cached</code></pre>
+  <p>
+    The first diff commands show unstaged changes; the last shows staged changes.
+    New, untracked files need their own inspection too. I would establish a clean, known
+    baseline before starting so unrelated work does not get mixed into the review.
+    Git can show what is different; the task description explains whether it should be.
+  </p>
+  <p>
+    If the existing visual still references the same measure, a report-file edit may be
+    unnecessary. If the requirement includes a renamed label or a new tooltip, I would
+    review that as a separate report change and check the rendered result.
+    Generated object IDs are not a useful place for a broad search-and-replace.
+  </p>
+
+  <h2>Metadata is readable, not automatically safe to share</h2>
+  <p>
+    PBIP gives me a way to track definitions without committing the local imported-data
+    cache. It does not guarantee a data-free or sanitised folder.
+    The project can have a <code>.pbi\cache.abf</code> file containing cached model data;
+    model expressions can also contain inline data, source names or sensitive literals.
+  </p>
+  <p>
+    Desktop's default Git exclusions cover <code>cache.abf</code> and
+    <code>localSettings.json</code>. I would check those rules are present, especially in
+    an existing repository where Desktop may not create a new <code>.gitignore</code>.
+    An ignore rule does not remove a file that Git already tracks.
+    Review the actual staged content before sharing it.
+  </p>
+  <p>
+    I also would not ignore the entire <code>.pbi</code> folder without checking its
+    contents. Some files have a different purpose. For example,
+    <code>unappliedChanges.json</code> can hold pending Power Query edits; applying those
+    later can overwrite query changes made elsewhere. That is a workflow decision,
+    not just a nuisance file to hide.
+  </p>
+
+  <h2>What still has to happen in Power BI</h2>
+  <p>
+    I would start with a copy of a small report, enable the PBIP save option in Desktop
+    if the installed version requires it, and save a baseline before making the change.
+    Microsoft's current project documentation still marks PBIP as preview, so supported
+    editing paths and limitations need checking against the version being used.
+  </p>
+  <p>
+    For a model edit, Desktop or model-aware tooling is a good default. For supported
+    external file edits, validate the relevant format and load the changed project back
+    into Desktop. Not every JSON file in a project supports external editing, and valid
+    JSON is not the same as a valid report.
+  </p>
+  <ol class="fn-review-list">
+    <li><strong>Check the calculation.</strong> Expect $350 overall, $150 for Alder and
+      $450 for Beacon in this fixture. Confirm date filters still apply and an empty
+      selection returns a blank average.</li>
+    <li><strong>Check the report.</strong> Inspect the card, total rows, number formatting,
+      filters and mobile layout. A model diff cannot show whether the label still fits.</li>
+    <li><strong>Check the target environment.</strong> After an approved deployment,
+      verify connections, refresh and relevant security behaviour in that environment.
+      A local folder is not evidence that service credentials or refresh settings are correct.</li>
+  </ol>
+  <p>
+    An agent can help locate the measure and summarise the diff. The
+    <a href="markdown-ai-context.html">context brief</a> explains the intended metric and
+    edit boundaries. Neither one replaces the numerical check.
+    For this article, the numbers are worked expectations; no Power BI execution is being claimed.
+  </p>
+
+  <div class="article-references">
+    <h2>Further reading</h2>
+    <p>Tabular Editor's <a href="https://tabulareditor.com/blog/pbip-for-models-and-reports">The PBIP format in simple terms: why metadata is so important</a>
+      prompted this review example. This article takes a narrower path: one shipment
+      measure, the files it affects, and the checks before publishing.</p>
+    <ul>
+      <li><a href="https://learn.microsoft.com/en-us/power-bi/developer/projects/projects-overview">Microsoft: Power BI Desktop projects and supported editing</a></li>
+      <li><a href="https://learn.microsoft.com/en-us/power-bi/developer/projects/projects-dataset">Microsoft: semantic-model files, caches and unapplied changes</a></li>
+      <li><a href="https://learn.microsoft.com/en-us/power-bi/developer/projects/projects-report">Microsoft: report files and model references</a></li>
+    </ul>
+  </div>
+  <footer class="article-footer">
+    <p>Written by <strong>Martin Padilla Schekaiban</strong>. Original fictional examples; no client project files or report screenshots.</p>
+    <a href="agents-power-bi.html">Related: where I use agents in a Power BI repo →</a>
+  </footer>
+</article>
+</main>
+<footer class="site"><div class="wrap"><a href="index.html#work">← All writing &amp; projects</a></div></footer>
+</body>
+</html>

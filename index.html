@@ -73,53 +73,111 @@
       <p>Things I've built, tried, and learned.</p>
     </div>
 
-    <div class="project-grid">
-    <a class="project" href="agents-power-bi.html">
-      <div class="project-top"><span class="tag">Field notes</span><span class="project-number" aria-hidden="true">01</span></div>
-      <h3>What AI agents are actually good and bad at in a Power BI repo</h3>
-      <p>
-        A year of agentic development against a PBIP/TMDL repository. Bulk-editing forty visual JSON
-        files works better than I expected; anything involving a GUID or a pixel coordinate never
-        worked once. The split isn't about difficulty — it's about feedback.
-      </p>
-      <span class="stack">Power BI · PBIP · TMDL · Git · agentic workflows</span>
-      <div class="project-bottom"><span class="when">September 2026 · 9 min read</span><span class="project-action">Read article <span aria-hidden="true">→</span></span></div>
-    </a>
+    <div class="writing-list">
+      <a class="project" href="markdown-ai-context.html">
+        <div class="project-meta">
+          <span class="tag">Practical guide · Context brief</span>
+          <time datetime="2026-09">September 2026</time>
+          <span class="when">6 min read</span>
+        </div>
+        <div class="project-copy">
+          <h3>The context I'd give an AI agent before touching a Power BI model</h3>
+          <p>A short Markdown brief for a shipment model: what one row means, which rules
+            matter, and the results a measure should return.</p>
+          <span class="stack">Markdown · AI context · Business definitions</span>
+        </div>
+        <span class="project-action">Read <span aria-hidden="true">→</span></span>
+      </a>
 
-    <a class="project project-demo" href="sqldoc.html">
-      <div class="project-top"><span class="tag">Project · live demo</span><span class="project-number" aria-hidden="true">02</span></div>
-      <h3>sqldoc — explaining a report without reading the SQL</h3>
-      <p>
-        "What's actually in this report?" is the question I get asked most, and answering it properly
-        means tracing 300 lines of SQL by hand. A zero-dependency Python tool that does it instead —
-        <strong>with a live version on the page: paste a query, see its lineage graph</strong>.
-      </p>
-      <span class="stack">Python · JavaScript · SQL parsing · 29 tests</span>
-      <div class="project-bottom"><span class="when">September 2026 · 5 min read</span><span class="project-action">Try the demo <span aria-hidden="true">→</span></span></div>
-    </a>
-    <a class="project" href="mcp-power-bi.html">
-      <div class="project-top"><span class="tag">Technical deep dive</span><span class="project-number" aria-hidden="true">03</span></div>
-      <h3>Giving an AI agent read access to a Power BI semantic model</h3>
-      <p>
-        Your coding assistant keeps writing DAX against columns that don't exist, and the fix isn't a
-        better prompt. Exposing a tabular model over MCP — what to surface, how to keep a large model
-        inside a context window, and why I'd keep it read-only.
-      </p>
-      <span class="stack">MCP · Power BI · TMDL · DAX · Python</span>
-      <div class="project-bottom"><span class="when">September 2026 · 8 min read</span><span class="project-action">Read article <span aria-hidden="true">→</span></span></div>
-    </a>
+      <a class="project" href="pbip-review.html">
+        <div class="project-meta">
+          <span class="tag">Worked example · Change review</span>
+          <time datetime="2026-09">September 2026</time>
+          <span class="when">7 min read</span>
+        </div>
+        <div class="project-copy">
+          <h3>What I review in a Power BI project before publishing</h3>
+          <p>Follow an average-charge correction through a PBIP project. Read the model diff,
+            separate it from report changes, and check the number behind the card.</p>
+          <span class="stack">PBIP · TMDL · PBIR · Git</span>
+        </div>
+        <span class="project-action">Read <span aria-hidden="true">→</span></span>
+      </a>
 
-    <a class="project" href="star-schema.html">
-      <div class="project-top"><span class="tag">Article · interactive</span><span class="project-number" aria-hidden="true">04</span></div>
-      <h3>The snapshot table that quietly triples your numbers</h3>
-      <p>
-        A monthly export appended to a table for eighteen months, now powering a dashboard the
-        business checks every Monday. Every metric on it is inflated, and every metric still looks
-        reasonable. <strong>Drag the slider and watch the gap open up.</strong>
-      </p>
-      <span class="stack">Dimensional modelling · Power BI · DAX · SQL</span>
-      <div class="project-bottom"><span class="when">September 2026 · 7 min read</span><span class="project-action">Read article <span aria-hidden="true">→</span></span></div>
-    </a>
+      <a class="project" href="snowflake-etl.html">
+        <div class="project-meta">
+          <span class="tag">Project · Refresh walkthrough</span>
+          <time datetime="2026-08">August 2026</time>
+          <span class="when">SQL + Power Query</span>
+        </div>
+        <div class="project-copy">
+          <h3>Snowflake → Power BI: incremental refresh</h3>
+          <p>A reporting view, a folding date filter, and a late charge correction.
+            What gets refreshed, what stays stale, and how to repair the history.</p>
+          <span class="stack">Snowflake · Power Query · Import models</span>
+        </div>
+        <span class="project-action">Try it <span aria-hidden="true">→</span></span>
+      </a>
+
+      <a class="project" href="agents-power-bi.html">
+        <div class="project-meta">
+          <span class="tag">Working notes</span>
+          <time datetime="2026-08">August 2026</time>
+          <span class="when">5 min read</span>
+        </div>
+        <div class="project-copy">
+          <h3>Where I use agents in a Power BI repo</h3>
+          <p>Measure lookups, repetitive JSON edits and documentation are useful places to start.
+            Layout, identifiers and service-side failures need different checks.</p>
+          <span class="stack">Power BI · PBIP · Git</span>
+        </div>
+        <span class="project-action">Read <span aria-hidden="true">→</span></span>
+      </a>
+
+      <a class="project" href="mcp-power-bi.html">
+        <div class="project-meta">
+          <span class="tag">Implementation</span>
+          <time datetime="2026-07">July 2026</time>
+          <span class="when">6 min read</span>
+        </div>
+        <div class="project-copy">
+          <h3>Letting an agent read a Power BI model</h3>
+          <p>The tools I'd expose over MCP, what a measure lookup can tell us, and the permissions
+            a query endpoint still needs.</p>
+          <span class="stack">MCP · DAX · Semantic models</span>
+        </div>
+        <span class="project-action">Read <span aria-hidden="true">→</span></span>
+      </a>
+
+      <a class="project project-demo" href="sqldoc.html">
+        <div class="project-meta">
+          <span class="tag">Project · Live demo</span>
+          <time datetime="2026-06">June 2026</time>
+          <span class="when">4 min read</span>
+        </div>
+        <div class="project-copy">
+          <h3>sqldoc: tracing a report back to its SQL</h3>
+          <p>Paste a query and inspect its source references, joins and filters. A small parser,
+            with a deliberately limited scope.</p>
+          <span class="stack">Python · JavaScript · SQL parsing</span>
+        </div>
+        <span class="project-action">Try it <span aria-hidden="true">→</span></span>
+      </a>
+
+      <a class="project" href="star-schema.html">
+        <div class="project-meta">
+          <span class="tag">Interactive example</span>
+          <time datetime="2026-05">May 2026</time>
+          <span class="when">6 min read</span>
+        </div>
+        <div class="project-copy">
+          <h3>When monthly snapshots get counted as new claims</h3>
+          <p>Use the slider to compare snapshot rows with distinct claims, then work through the
+            choice between historical and claim-level reporting.</p>
+          <span class="stack">Dimensional modelling · SQL · Power BI</span>
+        </div>
+        <span class="project-action">Read <span aria-hidden="true">→</span></span>
+      </a>
     </div>
   </section>
 

@@ -3,13 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Giving an AI agent read access to a Power BI semantic model</title>
-<meta name="description" content="Exposing a Power BI tabular model to an LLM agent over the Model Context Protocol: what to surface, how to handle large models, and why read-only is the right default.">
+<title>Letting an agent read a Power BI model</title>
+<meta name="description" content="A practical MCP interface for discovering Power BI tables and measures before writing DAX, with notes on permissions and verifying results.">
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
 <a class="skip-link" href="#main">Skip to content</a>
-
 <header class="site">
   <div class="wrap">
     <a class="name" href="index.html"><span class="brand-mark" aria-hidden="true">MP</span>Martin Padilla Schekaiban</a>
@@ -23,343 +22,184 @@
 
 <main class="wrap reading" id="main">
 <a class="back" href="index.html#work">← All writing &amp; projects</a>
-
-<article>
-  <p class="eyebrow">Technical deep dive / Semantic models</p>
-  <h1>Giving an AI agent read access to a Power BI semantic model</h1>
-  <p class="sub">
-    Or: why your coding assistant keeps writing DAX against columns that don't exist.
-  </p>
+<article class="article-guide">
+  <p class="eyebrow">Implementation notes · MCP</p>
+  <h1>Letting an agent read a Power BI model</h1>
+  <p class="sub">The tables and measures it needs to inspect before it writes any DAX.</p>
   <div class="byline">
-    September 2026 <span class="dot">·</span> MCP, Power BI, DAX <span class="dot">·</span> 8 min read
+    <time datetime="2026-07">July 2026</time> <span class="dot">·</span> 6 min read
   </div>
 
   <p>
-    Ask a coding assistant for a DAX measure and you'll usually get something that looks fine. It
-    references <code>Sales[Amount]</code>. Your column is called <code>Sales[NetAmount]</code>. Or it
-    writes a <code>Total Revenue</code> measure from scratch when you already have one, defined
-    slightly differently, three display folders over.
+    A common problem with generated DAX is a reference to a column that doesn't exist.
+    The expression looks familiar, and the table name sounds plausible, but it isn't the model
+    you're working on. A less obvious problem is a new measure that almost duplicates one you
+    already have, with a slightly different filter or denominator.
   </p>
-
   <p>
-    I used to blame the prompt for this. Spent longer than I'd like to admit pasting table
-    definitions into chat windows before every question. That works, sort of, right up until the
-    model has forty tables and the paste doesn't fit.
-  </p>
-
-  <p>
-    The real problem is duller than a prompting failure. The assistant has never seen your model.
-    It's pattern-matching against every Power BI file on the public internet, and on average those
-    files have a column called <code>Amount</code>. Given nothing else to go on, that's a perfectly
-    reasonable guess. It's also wrong.
-  </p>
-
-  <p>
-    So give it something to go on. The Model Context Protocol is an open standard for exposing tools
-    and data to an LLM client over JSON-RPC, and a tabular model turns out to be a very natural thing
-    to put behind one.
+    Pasting definitions into a prompt helps for a small change. For repeated work, I'd rather
+    give the assistant a way to look up the definitions it needs. MCP provides a tool interface
+    for that: the assistant calls a server, and the server retrieves model metadata under the
+    permissions it has been given.
   </p>
 
   <figure>
     <div class="figure-scroll" role="region" aria-label="MCP architecture diagram" tabindex="0">
-      <img src="assets/mcp-architecture.svg" alt="A coding agent calls tools on an MCP server, which reads the Power BI semantic model over XMLA. Credentials stay on the server.">
+      <img src="assets/mcp-architecture.svg" alt="A coding agent calls tools on an MCP server, which reads a Power BI semantic model over XMLA. Credentials stay on the server.">
     </div>
     <figcaption>
       <span class="scroll-hint">Scroll horizontally to see the full diagram.</span>
-      <b>The shape of it.</b> The agent never touches the model directly — it calls tools on a server
-      that does. Which is also how credentials stay out of the chat transcript.
+      One possible connection: MCP in front of an XMLA client. The model connection and its
+      credentials belong on the server, not in the prompt.
     </figcaption>
   </figure>
 
-  <div class="note">
-    <p>
-      Everything here runs against a throwaway model I built for this post. Three tables, two
-      measures, generated data. No employer or client material appears anywhere below.
-    </p>
+  <h2>Discovery before execution</h2>
+  <p>
+    A tool that only executes DAX leaves the agent with the same naming problem. It needs a
+    small set of discovery tools first. These are example tool names, not a standard Power BI
+    MCP API; the server implementation defines them.
+  </p>
+  <div class="table-scroll" role="region" aria-label="Example model tools" tabindex="0">
+    <table>
+      <thead><tr><th scope="col">Tool</th><th scope="col">Information to return</th></tr></thead>
+      <tbody>
+        <tr><td><code>list_tables</code></td><td>Table names, descriptions and hidden flags.</td></tr>
+        <tr><td><code>describe_table</code></td><td>Column names and types, keys, relationships and filter directions.</td></tr>
+        <tr><td><code>list_measures</code></td><td>Measure names, home tables and display folders.</td></tr>
+        <tr><td><code>get_measure_dax</code></td><td>The selected expression, format string and description.</td></tr>
+        <tr><td><code>run_dax</code></td><td>A bounded query result, with execution status and an explicit truncation flag.</td></tr>
+      </tbody>
+    </table>
   </div>
-
-  <h2>The demo model</h2>
-
   <p>
-    Small enough to read in one go, real enough to show the problem:
+    I'd keep the first calls small. Listing measure names and folders lets the agent narrow its
+    search before retrieving expressions. Returning every expression in a large model makes it
+    harder to find the relevant definition and uses context unnecessarily. Row counts are
+    optional: depending on how they are obtained, they can turn a metadata request into an
+    expensive data query.
   </p>
 
-<pre><code>table Shipment
-    column ShipmentKey
-        dataType: int64
-        isHidden: true
-    column CarrierKey
-        dataType: int64
-        isHidden: true
-    column NetCharge
-        dataType: decimal
-    column DeliveredOnTime
-        dataType: int64
-
-    measure 'Total Net Charge' = SUM(Shipment[NetCharge])
-    measure 'On Time %' =
-            DIVIDE(
-                SUM(Shipment[DeliveredOnTime]),
-                COUNTROWS(Shipment)
-            )
-        formatString: 0.0%
-
-table Carrier
-    column CarrierKey
-        dataType: int64
-        isHidden: true
-    column CarrierName
-        dataType: string
-
-table 'Date'
-    column Date
-        dataType: dateTime
-    column MonthStart
-        dataType: dateTime
-</code></pre>
-
+  <h2>A denominator worth reading</h2>
   <p>
-    Look at <code>On Time %</code> for a second. It divides a flag sum by <em>all</em> rows, including
-    shipments that were never delivered. Whether that's right depends on business rules nobody wrote
-    down, and the name certainly doesn't tell you. No amount of clever prompting gets an agent there.
-    It has to read the expression.
+    Consider this expression in a synthetic shipment model. <code>DeliveredOnTime</code> is a
+    numeric flag and the fact table contains one row per shipment:
   </p>
-
-  <h2>What to actually expose</h2>
-
+<pre><code>On Time % =
+DIVIDE(
+    SUM(Shipment[DeliveredOnTime]),
+    COUNTROWS(Shipment)
+)</code></pre>
   <p>
-    My first version had exactly one tool: <code>run_dax</code>. Send a query, get rows back. Elegant,
-    and nearly useless — to write a working query the agent needs to already know what's in the
-    model. I'd rebuilt the original problem with extra steps.
+    Every visible row contributes to the denominator, including an undelivered shipment if it
+    remains in the filter context. That might match the intended definition, or it might be
+    wrong for a delivered-only KPI. The name “On Time %” doesn't settle it.
   </p>
-
   <p>
-    Splitting discovery from execution works much better:
+    I'd ask the agent to retrieve this measure and describe the denominator before proposing a
+    rolling-period version. I also want the relevant relationship: a shipment can have an order
+    date, a pickup date and a delivery date. Finding a table called <code>Date</code> is not enough.
   </p>
-
-  <div class="table-scroll" role="region" aria-label="MCP tools" tabindex="0">
-  <table>
-    <tr><th>Tool</th><th>Returns</th><th>Why it earns its place</th></tr>
-    <tr>
-      <td><code>list_tables</code></td>
-      <td>Names, row counts, hidden flag</td>
-      <td>Cheap orientation before pulling anything heavy</td>
-    </tr>
-    <tr>
-      <td><code>describe_table</code></td>
-      <td>Columns, types, relationships</td>
-      <td>Kills the invented-column-name problem</td>
-    </tr>
-    <tr>
-      <td><code>list_measures</code></td>
-      <td>Names, folders, format strings</td>
-      <td>Lets it find what already exists</td>
-    </tr>
-    <tr>
-      <td><code>get_measure_dax</code></td>
-      <td>The expression itself</td>
-      <td>Where the business logic actually lives</td>
-    </tr>
-    <tr>
-      <td><code>run_dax</code></td>
-      <td>Result rows</td>
-      <td>Verification instead of confident assertion</td>
-    </tr>
-  </table>
-  </div>
-
   <p>
-    The split is mostly about token cost. Listing 200 measure names is a small payload. Returning 200
-    DAX expressions is not, and on a model of any real size you'll blow the context window. Let the
-    agent narrow first, then fetch detail for the two or three things it cares about.
+    If the agreed definition is the existing measure, and a complete date table has an active
+    relationship to the required shipment date, the new expression can reuse it:
   </p>
-
-  <h3>The server</h3>
-
-  <p>
-    With the Python SDK it's mostly decorators. Connecting to the model underneath is an ordinary
-    XMLA client, nothing exotic:
-  </p>
-
-<pre><code>from mcp.server.fastmcp import FastMCP
-
-mcp = FastMCP("powerbi-model")
-
-@mcp.tool()
-def list_tables() -> list[dict]:
-    """List tables in the model with row counts."""
-    return [
-        {"name": t.Name, "rows": row_count(t), "hidden": t.IsHidden}
-        for t in model.Tables
-    ]
-
-@mcp.tool()
-def get_measure_dax(measure_name: str) -> dict:
-    """The DAX expression behind a measure."""
-    m = find_measure(model, measure_name)
-    return {
-        "name": m.Name,
-        "table": m.Table.Name,
-        "expression": m.Expression,
-        "format_string": m.FormatString,
-    }
-
-@mcp.tool()
-def run_dax(query: str, max_rows: int = 100) -> dict:
-    """Execute a read-only DAX query."""
-    return execute_query(query, max_rows=max_rows)
-</code></pre>
-
-  <p>
-    One thing that caught me out: those docstrings matter more than the code. They're shipped to the
-    model as the tool description, and they're the entire basis on which it picks a tool. I had a
-    vague one early on — "get model info" — and watched the agent reach for it constantly, for
-    everything. Made it specific, and the behaviour changed the same afternoon.
-  </p>
-
-  <h2>What changes</h2>
-
-  <p>
-    Same request either way: <em>"add an on-time percentage measure by carrier over the last 12
-    months."</em>
-  </p>
-
-  <figure>
-    <div class="figure-scroll" role="region" aria-label="Model access comparison diagram" tabindex="0">
-      <img src="assets/mcp-before-after.svg" alt="Left: without model access the agent invents a Sales table and an OnTimeFlag column. Right: with access it lists tables, finds the existing measure, reads its DAX, and composes on top of it.">
-    </div>
-    <figcaption>
-      <span class="scroll-hint">Scroll horizontally to see the full diagram.</span>
-      <b>Left, no access.</b> Plausible DAX against a table that doesn't exist.
-      <b>Right, with access.</b> Three cheap lookups, then a measure built on the one that was already
-      there.
-    </figcaption>
-  </figure>
-
-  <p>
-    The call doing the heavy lifting is <code>get_measure_dax</code>. Once the agent can see that
-    <code>On Time %</code> exists and how it's defined, it stops reinventing and starts composing:
-  </p>
-
 <pre><code>On Time % L12M =
 CALCULATE(
     [On Time %],
     DATESINPERIOD(
         'Date'[Date],
-        MAX( 'Date'[Date] ),
+        MAX('Date'[Date]),
         -12,
         MONTH
     )
-)
-</code></pre>
-
+)</code></pre>
   <p>
-    Then it runs the thing, which is the part I care about most:
+    This anchors the window to the maximum date in the current filter context. It does not
+    automatically mean “the last twelve completed months” or “up to today.” Those are separate
+    requirements. Before saving the measure, I would check the date window and compare a few
+    carriers with a query whose numerator and denominator are visible.
   </p>
 
-<pre><code>→ run_dax("EVALUATE TOPN(5,
-      SUMMARIZECOLUMNS(
-          Carrier[CarrierName],
-          \"OnTime\", [On Time % L12M]
-      ),
-      [OnTime], ASC)")
-
-← Carrier D   0.831
-  Carrier A   0.874
-  Carrier K   0.902
-</code></pre>
-
+  <h2>The server still has work to do</h2>
   <p>
-    Numbers I can check against something I already trust. That's the gap between a suggestion and a
-    result.
+    The Python MCP SDK can expose a lookup with a small wrapper. This is the interface only,
+    not a complete server: <code>find_measure</code> represents the authenticated model lookup
+    and must report missing or ambiguous names explicitly.
+  </p>
+<pre><code>from mcp.server.fastmcp import FastMCP
+
+mcp = FastMCP("powerbi-model")
+
+@mcp.tool()
+def get_measure_dax(table_name: str, measure_name: str) -&gt; dict:
+    """Read one existing measure; does not change the model."""
+    measure = find_measure(table_name, measure_name)
+    return {
+        "name": measure.Name,
+        "table": measure.Table.Name,
+        "expression": measure.Expression,
+        "format_string": measure.FormatString,
+    }</code></pre>
+  <p>
+    A file-backed implementation can inspect TMDL without connecting to a running model. An XMLA
+    implementation can inspect a deployed model and, with appropriate access, execute queries.
+    XMLA availability depends on the workspace and capacity configuration. These are different
+    capabilities; reading a local definition does not prove that a measure has executed successfully.
+  </p>
+  <p>
+    Tool descriptions need to state those boundaries. “Read one existing measure” tells the
+    caller more than “get model information.” Errors should distinguish an unavailable model,
+    a missing object and a permission failure rather than returning an empty result for all three.
   </p>
 
-  <h2>Things that bit me</h2>
-
-  <h3>Big models don't fit</h3>
+  <h2>Permissions and query results</h2>
   <p>
-    Obvious in hindsight. A production model with hundreds of tables will not fit in a prompt, so
-    return summaries by default and detail on request. <code>list_tables</code> gives names and row
-    counts, nothing more. If the agent wants columns, it can ask.
+    For a first version, I'd expose metadata through the narrowest suitable read-only identity
+    and keep proposed changes in a branch for review. Naming a tool <code>run_dax</code>, or writing
+    “read-only” in its docstring, doesn't enforce that boundary. The model permissions and the
+    operations accepted by the server have to do so.
+  </p>
+  <p>
+    Query access also means data access. The server identity, any effective-user configuration,
+    and the model's security rules determine what can be returned. A service identity must not
+    accidentally expose data that the person using the assistant is not authorised to see.
+    Metadata can itself be sensitive, so use an approved model and assistant environment.
+  </p>
+  <p>
+    I would apply a server-side result limit, a query timeout and an explicit indication when
+    rows are omitted. Limiting returned rows does not necessarily limit the work needed to
+    calculate them. Keep credentials and connection strings out of tool responses and logs,
+    including error messages.
   </p>
 
-  <h3>Read-only, at least to start</h3>
+  <h2>What I would review in a change</h2>
   <p>
-    You can expose mutation over MCP — create measures, alter tables, all of it. I'd think hard first.
-    A read-only server that <em>proposes</em> TMDL for a human to apply gets you most of the benefit
-    and none of the 2am incident. Widen the permissions later, once the workflow has earned some
-    trust.
+    A useful proposal includes the existing measure it builds on, the relationship it relies on,
+    the new expression, and the query used to check it. If the agent couldn't execute that query,
+    I want to see that stated plainly. A draft that hasn't run is still useful, as long as it
+    isn't presented as a verified result.
+  </p>
+  <p>
+    The same interface can support documentation and reference searches. I would start with
+    those smaller jobs before allowing model changes, then keep the review process described
+    in my <a href="agents-power-bi.html">Power BI repository notes</a>.
   </p>
 
-  <h3>Cap the row count</h3>
-  <p>
-    <code>EVALUATE</code> against a million-row fact table will cheerfully try to return a million
-    rows. Cap it server-side, and make the response <em>say</em> it was capped. Otherwise the agent
-    reasons over a truncated set with no idea that's what it's doing.
-  </p>
-
-  <h3>Keep credentials on the server</h3>
-  <p>
-    The server authenticates to the model; the agent only ever talks to the server. If a connection
-    string reaches the prompt, it reaches the logs.
-  </p>
-
-  <h2>Where it actually pays off</h2>
-
-  <p>
-    Measure authoring is the demo, but it's not where most of the value ended up for me. What I
-    actually use it for:
-  </p>
-
-  <ul>
-    <li><strong>Impact analysis.</strong> "What breaks if I rename this column?" is a graph walk over
-        measure expressions — tedious by hand, trivial for something that can read all of them.</li>
-    <li><strong>Documentation.</strong> A data dictionary that regenerates on demand, instead of one
-        written once that quietly goes stale by March.</li>
-    <li><strong>Review.</strong> An agent reading real DAX can flag the measure using <code>/</code>
-        where it wants <code>DIVIDE</code>, or a relationship filtering the wrong way.</li>
-    <li><strong>Onboarding.</strong> New analysts asking questions in English and getting answers
-        grounded in the model, rather than in what an LLM assumes models look like.</li>
-  </ul>
-
-  <p>
-    None of this needs the agent to be clever. It needs the agent to be looking at the right thing.
-  </p>
-
-  <h2>Links</h2>
-  <ul>
-    <li><a href="https://modelcontextprotocol.io/">Model Context Protocol — spec and SDKs</a></li>
-    <li><a href="https://learn.microsoft.com/power-bi/transform-model/desktop-tmdl-view">TMDL view in Power BI Desktop</a></li>
-    <li><a href="https://learn.microsoft.com/analysis-services/tom/introduction-to-the-tabular-object-model-tom-in-analysis-services-amo">Tabular Object Model (TOM)</a></li>
-  </ul>
-
+  <div class="article-references">
+    <h2>References</h2>
+    <ul>
+      <li><a href="https://modelcontextprotocol.io/">Model Context Protocol specification and SDKs</a></li>
+      <li><a href="https://learn.microsoft.com/power-bi/enterprise/service-premium-connect-tools">Power BI connectivity with the XMLA endpoint</a></li>
+      <li><a href="https://learn.microsoft.com/power-bi/transform-model/desktop-tmdl-view">TMDL view in Power BI Desktop</a></li>
+    </ul>
+  </div>
+  <footer class="article-footer">
+    <p>Written by <strong>Martin Padilla Schekaiban</strong>. Model names and calculations here are illustrative, not client material.</p>
+    <a href="index.html#work">More writing →</a>
+  </footer>
 </article>
-
-<section>
-  <div class="about">
-    <div class="initials">MP</div>
-    <div>
-      <p>
-        I'm Martin — a BI developer working mostly in Power BI, Snowflake and SSRS on supply chain
-        reporting. I write here now and then about modelling problems and the tooling I build around
-        them.
-      </p>
-      <p>
-        <a href="https://www.linkedin.com/in/martinschekaiban/" style="color:var(--accent);text-decoration:none">LinkedIn</a>
-        <span style="color:var(--faint)"> · </span>
-        <a href="index.html" style="color:var(--accent);text-decoration:none">More writing</a>
-      </p>
-    </div>
-  </div>
-</section>
-
 </main>
-
-<footer class="site">
-  <div class="wrap">
-    <a href="index.html">← All work</a>
-  </div>
-</footer>
-
+<footer class="site"><div class="wrap"><a href="index.html#work">← All writing &amp; projects</a></div></footer>
 </body>
 </html>

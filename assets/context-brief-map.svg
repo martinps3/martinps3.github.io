@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="440" viewBox="0 0 880 440" role="img" aria-labelledby="title desc">
+  <title id="title">Three things to put in a model context brief</title>
+  <desc id="desc">Facts about shipment grain, decisions about the metric, and expected results feed a Markdown brief. An agent reads that brief alongside the current model, then proposes a change for human review.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0 0 L6 3 L0 6" fill="none" stroke="#647b8e" stroke-width="1.4"/></marker>
+  </defs>
+  <rect width="880" height="440" rx="12" fill="#f7f8f5"/>
+  <g font-family="Segoe UI, Arial, sans-serif">
+    <text x="32" y="37" font-size="12" font-weight="700" letter-spacing="1.5" fill="#526171">THE HANDOFF BEFORE THE DAX</text>
+    <text x="32" y="69" font-size="24" font-weight="650" fill="#17283a">Give it the decisions, not just the column names.</text>
+    <path d="M276 149 H306 V237 H336 M276 237 H336 M276 325 H306 V237" fill="none" stroke="#647b8e" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <path d="M566 237 H612" fill="none" stroke="#647b8e" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <g>
+      <rect x="32" y="111" width="244" height="76" rx="7" fill="#fff" stroke="#d4dfe6"/>
+      <rect x="32" y="111" width="5" height="76" rx="2" fill="#62829c"/>
+      <text x="50" y="137" font-size="12" font-weight="700" fill="#456680">01 / FACT</text>
+      <text x="50" y="164" font-size="17" fill="#17283a">One row = one shipment</text>
+      <rect x="32" y="199" width="244" height="76" rx="7" fill="#fff" stroke="#d4dfe6"/>
+      <rect x="32" y="199" width="5" height="76" rx="2" fill="#b78c51"/>
+      <text x="50" y="225" font-size="12" font-weight="700" fill="#84602e">02 / DECISION</text>
+      <text x="50" y="252" font-size="17" fill="#17283a">Equal weight per shipment</text>
+      <rect x="32" y="287" width="244" height="76" rx="7" fill="#fff" stroke="#d4dfe6"/>
+      <rect x="32" y="287" width="5" height="76" rx="2" fill="#6d8b7d"/>
+      <text x="50" y="313" font-size="12" font-weight="700" fill="#456b59">03 / CHECK</text>
+      <text x="50" y="340" font-size="17" fill="#17283a">$2,100 / 6 shipments = $350</text>
+    </g>
+    <rect x="336" y="138" width="230" height="198" rx="8" fill="#172e43"/>
+    <text x="356" y="168" font-size="12" font-weight="700" letter-spacing="1" fill="#b6cbdd">MODEL-CONTEXT.MD</text>
+    <path d="M356 184 H546" stroke="#436078"/>
+    <g font-family="Consolas, monospace" font-size="15" fill="#ecf2f7">
+      <text x="356" y="211">## Grain</text>
+      <text x="356" y="240">## Business meaning</text>
+      <text x="356" y="269">## Expected results</text>
+      <text x="356" y="298">## Edit boundaries</text>
+    </g>
+    <rect x="616" y="162" width="232" height="150" rx="8" fill="#eaf0f5" stroke="#b7c9d6"/>
+    <text x="636" y="194" font-size="18" font-weight="650" fill="#17283a">Read, then propose</text>
+    <text x="636" y="224" font-size="16" fill="#354e64">Brief + current definitions</text>
+    <text x="636" y="253" font-size="16" fill="#354e64">Name conflicts first</text>
+    <text x="636" y="282" font-size="16" fill="#354e64">Human review before edits</text>
+    <text x="32" y="408" font-size="14" fill="#526171">A context file communicates intent. Tool permissions still control what an agent can do.</text>
+  </g>
+</svg>

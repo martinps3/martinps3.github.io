@@ -264,55 +264,36 @@ h2.section {
 }
 .section-heading > p { margin: 0; color: var(--muted); font-size: 14px; text-align: right; }
 
-/* ---------- project cards ---------- */
-.project-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+/* ---------- writing index ---------- */
+.writing-list { border-top: 1px solid var(--line); }
 .project {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: 155px minmax(0, 1fr) 66px;
+  align-items: start;
+  gap: 30px;
   min-width: 0;
   text-decoration: none;
   color: inherit;
-  padding: 30px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  background: var(--surface);
-  transition: border-color .2s ease, box-shadow .2s ease;
+  padding: 30px 12px;
+  border-bottom: 1px solid var(--line);
+  transition: background .2s ease;
 }
-.project:hover, .project:focus-visible {
-  border-color: #9fb4c6;
-  box-shadow: var(--shadow);
-}
-.project-demo { background: #f0f5f9; border-color: #cfdee9; }
-.project-top { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 22px; }
-.project-number { font: 12px/1.5 ui-monospace, SFMono-Regular, Consolas, monospace; color: var(--faint); }
+.project:hover, .project:focus-visible { background: var(--accent-soft); }
+.project-meta { display: flex; flex-direction: column; gap: 4px; padding-top: 4px; font-size: 12px; color: var(--faint); }
 .project .tag {
-  display: inline-block;
   font-size: 11px;
-  letter-spacing: .07em;
+  letter-spacing: .04em;
   text-transform: uppercase;
-  font-weight: 700;
+  font-weight: 650;
   color: var(--accent);
-  background: var(--accent-soft);
-  border-radius: 4px;
-  padding: 4px 8px;
+  margin-bottom: 8px;
 }
-.project-demo .tag { background: #dfeaf3; }
-.project h3 { margin: 0 0 14px; font-size: 23px; line-height: 1.35; letter-spacing: -.025em; font-weight: 650; text-wrap: pretty; }
-.project p { margin: 0 0 20px; color: var(--muted); font-size: 15px; line-height: 1.75; }
-.project strong { font-weight: 600; }
-.stack { margin-top: auto; font-size: 12px; color: var(--faint); }
-.project-bottom {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-top: 22px;
-  padding-top: 18px;
-  border-top: 1px solid var(--line);
-}
+.project-copy { min-width: 0; }
+.project h3 { margin: 0 0 10px; font-size: 23px; line-height: 1.35; letter-spacing: -.025em; font-weight: 650; text-wrap: pretty; }
+.project p { margin: 0 0 12px; max-width: 65ch; color: var(--muted); font-size: 15px; line-height: 1.75; }
+.stack { font-size: 12px; color: var(--faint); }
 .project .when { font-size: 12px; color: var(--faint); }
-.project-action { display: inline-flex; align-items: center; gap: 12px; color: var(--accent); font-size: 12px; font-weight: 600; }
+.project-action { display: inline-flex; align-items: center; justify-content: flex-end; gap: 10px; padding-top: 6px; color: var(--accent); font-size: 12px; font-weight: 600; }
 .project-action > span { font-size: 19px; line-height: 1; transition: transform .2s ease; }
 .project:hover .project-action > span { transform: translateX(3px); }
 
@@ -422,6 +403,14 @@ article > p:not(.eyebrow):not(.sub):not(.pg-cap) { color: #35485a; }
 article > ul, article > ol { color: #35485a; }
 article ul, article ol { margin: 0 0 16px; padding-left: 22px; }
 article li { margin-bottom: 7px; }
+.article-notes { max-width: 68ch; margin-inline: auto; }
+.article-notes h1 { font-family: Georgia, "Times New Roman", serif; font-weight: 400; letter-spacing: -.025em; }
+.article-project .byline { margin-bottom: 26px; }
+.article-footer { margin-top: 40px; padding-top: 22px; border-top: 1px solid var(--line); color: var(--muted); font-size: 13px; }
+.article-footer p { margin-bottom: 8px; }
+.article-footer a { display: inline-flex; align-items: center; min-height: 44px; }
+.article-references { margin-top: 40px; font-size: 14px; }
+.article-references h2 { font-size: 18px; margin: 0 0 12px; }
 
 pre {
   background: #172e43;
@@ -714,7 +703,7 @@ footer.site a:hover { text-decoration: underline; }
   .hero h1 { font-size: 46px; }
   .approach { padding: 22px; }
   .model-sources span, .model-outputs span { padding: 4px 7px; }
-  .project { padding: 24px; }
+  .project { gap: 22px; grid-template-columns: 140px minmax(0, 1fr) 60px; }
   .skills-section { gap: 40px; }
 }
 
@@ -726,7 +715,9 @@ footer.site a:hover { text-decoration: underline; }
   .approach-heading { grid-column: 1 / -1; }
   .model-map { margin: 0; }
   .approach-steps { align-self: center; }
-  .project-grid { grid-template-columns: 1fr; }
+  .project { grid-template-columns: minmax(0, 1fr) auto; gap: 12px 20px; }
+  .project-meta { grid-column: 1 / -1; flex-direction: row; align-items: baseline; flex-wrap: wrap; gap: 6px 16px; padding: 0; }
+  .project .tag { margin: 0; }
   .skills-section { grid-template-columns: 1fr; gap: 28px; }
   .skills-intro > p:last-child { max-width: 50ch; }
   .contact-section .about { padding: 32px; gap: 24px; }
@@ -753,9 +744,9 @@ footer.site a:hover { text-decoration: underline; }
   .section-heading > p { text-align: left; }
   h2.section { font-size: 27px; }
   section { margin-bottom: 48px; }
-  .project { padding: 24px; }
+  .project { padding: 24px 0; grid-template-columns: minmax(0, 1fr); }
   .project h3 { font-size: 22px; }
-  .project-bottom { align-items: flex-start; }
+  .project-action { justify-content: flex-start; }
   .contact-section .about { padding: 28px; flex-direction: column; }
   .about { padding: 22px; gap: 16px; flex-direction: column; }
   article .sub { font-size: 17px; }
@@ -779,7 +770,7 @@ footer.site a:hover { text-decoration: underline; }
   body { background: #fff; color: #000; font-size: 11pt; }
   .wrap, .reading { max-width: none; padding: 0; }
   header.site, footer.site, .skip-link, .back, .hero-actions, .approach { display: none; }
-  .hero, .skills-section, .project-grid { display: block; }
+  .hero, .skills-section, .writing-list { display: block; }
   .hero { padding: 0 0 24px; }
   .project { margin-bottom: 18px; }
   .project, .about, .contact-section .about, .sn, .pg, pre { background: #fff; color: #000; box-shadow: none; border-color: #ccc; break-inside: avoid; }

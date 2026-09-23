@@ -1,0 +1,163 @@
+SNOWFLAKE -> POWER BI: PERSONAL INCREMENTAL-REFRESH REHEARSAL
+
+Synthetic shipment facts; no customer data or credentials. These are runnable
+templates after you supply your own sandbox connection, not a supplied PBIX.
+No Snowflake/Power BI execution, folding, or performance result is claimed.
+
+1. Prepare a safe sandbox
+Manually create/select your own disposable database and schema, and select an
+existing permitted role/warehouse. Replace every YOUR_* placeholder in both SQL
+files and the M file. Use ordinary unquoted uppercase database/schema names.
+Your role needs existing access to create/query the demo objects; these scripts
+do not provision privileges, databases, schemas, or warehouses. Warehouse and
+storage usage may cost money. Do not run against production.
+
+Run incremental-refresh-setup.sql in order, stopping at the first error.
+Plain CREATE deliberately errors on existing names; nothing replaces or drops
+them. Table creation and seeding are one CTAS statement. DDL is not atomic
+across the whole script: after a partial failure, inspect before proceeding.
+Use a new disposable schema for a fresh rehearsal, not an overwrite/reset.
+
+Check the emitted rows and quality counts: six distinct non-null shipment IDs,
+no null dates, midnight timestamps, initial UPDATED_AT = SHIPPED_AT, USD 2100.
+The reporting view is just a projection. SHIPPED_AT is TIMESTAMP_NTZ: no timezone
+is stored. All timestamps and Power Query Date/Time boundaries represent UTC
+by convention; neither the view nor M converts the source column to a date.
+
+2. Choose fixed illustration or live dates BEFORE setup
+Both SQL scripts default IR_DEMO_TODAY to 2026-09-24 (zero date shift). Thus:
+S1001 May 12=100; S1002 July 20=200; S1003 August 10=300;
+S1004 September 1=400; S1005 September 21=500; S1006 September 22=600 (all 2026).
+
+Fixed dates are ideal for reproducible local RangeStart/RangeEnd tests on any
+day. They do NOT make the service act as if today were September 24, 2026.
+Service partitions follow the actual refresh execution date and configured
+refresh timezone, not this SQL variable or Desktop's parameter preview.
+Outside this example period, a three-day policy will not revisit those dates;
+eventually the five-month archive will exclude them too.
+
+For a live rehearsal, get today's UTC date using the SELECT commented in setup.
+Put that date as the IR_DEMO_TODAY literal in BOTH scripts before running them.
+The same day offset from September 24 shifts every SHIPPED_AT and UPDATED_AT,
+including the later changes. Record the literal; never independently evaluate
+"today" in the changes script. Complete baseline and change refreshes on that
+same UTC day, away from midnight, with service refresh timezone set to UTC.
+Shift Desktop test boundaries by the same offset. If the rehearsal spans days,
+inspect actual policy bounds or restart in a new schema with a new anchor.
+
+3. Load the reporting view in Desktop
+Use current 64-bit Power BI Desktop: Get data > Snowflake. Enter your account
+server and existing warehouse, authenticate using your approved method, choose
+Import (NOT DirectQuery), then navigate database > schema >
+IR_PORTFOLIO_20260924_REPORTING and Transform Data.
+
+Manage Parameters: create required parameters RangeStart and RangeEnd, exact
+case, both Type Date/Time. For the fixed illustration set:
+  RangeStart = September 21, 2026 00:00:00
+  RangeEnd   = September 24, 2026 00:00:00
+Paste incremental-refresh.pq in the selected view's Advanced Editor after
+replacing its placeholders. Keep Navigator-generated Name/Kind/Data keys if
+your connector metadata differs. Confirm SHIPPED_AT is Date/Time.
+The filter is >= RangeStart AND < RangeEnd. Only one end includes equality,
+so midnight boundary rows cannot belong to both adjacent partitions.
+Do not introduce Date.From, timestamp text conversion, Table.Buffer, or
+nonfolding transformations before this filter.
+
+Before changes: preview/load gives S1005 and S1006, USD 1100.
+After changes: the same range gives S1005, S1006, S1007, USD 1850.
+To inspect all fixed rows locally, temporarily use May 1 through September 24:
+six rows/USD 2100 before changes; seven/USD 2930 after. Restore the small range.
+Desktop filtering alone does NOT build or simulate service partitions.
+
+4. Check folding; then publish a baseline
+Use Query Diagnostics around a fresh preview/refresh and inspect the associated
+Snowflake Query History SQL. Look at the actual data retrieval queries, not just
+metadata calls. Confirm both lower-inclusive and upper-exclusive SHIPPED_AT
+predicates, with the selected bounds (or equivalent bound parameters), execute
+at Snowflake. Change the test range and verify the predicates change too.
+View Native Query, where available, is another aid, not the only test.
+A disabled command or a fast six-row query is not proof either way.
+Capture query IDs/SQL and the Desktop/connector version for your own evidence.
+This template is designed to fold; folding has NOT been tested here.
+
+Close & Apply. Name the table Shipments. A simple check measure is:
+  Total Charge USD = SUM(Shipments[CHARGE_USD])
+Configure its incremental-refresh policy: archive/store five months, refresh
+three days, Only refresh complete days ON. These are illustrative settings,
+not a production recommendation. Leave real-time DirectQuery and Detect data
+changes OFF. UPDATED_AT is audit evidence, not the partition/filter column.
+
+Publish to your own licensed workspace, configure its Snowflake credentials
+and connection (gateway only if your environment requires one), set refresh
+timezone UTC, and run the FIRST service refresh BEFORE the changes script.
+The service overrides Desktop bounds and fills archive plus recent partitions.
+With the aligned rehearsal dates, check six rows/USD 2100. Initial refresh can
+be more expensive than subsequent refreshes. Keep a copy of the Desktop file.
+
+5. Apply changes and compare
+Run incremental-refresh-changes.sql with the original anchor. It sets S1005 to
+550, S1001 to 180, and inserts S1007 at 700. Their UPDATED_AT is September 23
+midnight (plus any chosen shift). S1007 SHIPPED_AT is that same timestamp;
+existing SHIPPED_AT values do not move. MERGE uses absolute values and a unique
+source key: rerunning it leaves the same seven rows/USD 2930. Verify its output.
+
+Now refresh the existing service model again; do not republish a new baseline.
+For the illustrative [September 21, September 24) recent interval, refresh
+replaces recent partition contents: S1005's +50 and S1007's +700 are included.
+The model still has old S1001=100: total USD 2850, versus source USD 2930.
+The missing USD 80 is a historical correction, not a missing new shipment.
+These totals assume all six baseline rows remain archived and the actual
+refresh bounds match the illustration (shifted for a live rehearsal).
+Inspect service refresh/query history instead of assuming exact partition
+names or a fixed September 24 execution date.
+
+The page simulator deliberately freezes its cutoff at September 24 00:00 UTC.
+After changes, its three-day interval reads September 21-23 (three source
+rows); 30 days starts August 25 (four); 150 days is clamped to the simulator's
+retained-history start of May 1 (seven). These are source rows selected by the
+illustrative filter, not measured Snowflake scan counts or guaranteed service
+partition layouts. Baseline 2100 -> source 2930 -> recent-only model 2850 ->
+May-partition repair 2930, all USD. A real service run still uses its own date.
+
+6. Repair limits and licensing
+An old row's new UPDATED_AT does not bring its old SHIPPED_AT partition into
+the window. Detect data changes, if enabled separately, does not scan all
+history for you. Moving SHIPPED_AT across partitions can leave a stale old
+copy unless both affected partitions are refreshed. Hard deletes outside
+refreshed partitions likewise remain; change detection is not a delete log.
+
+Repair affected historical partitions deliberately, then reconcile keys and
+USD totals. Targeted XMLA partition processing requires an applicable
+Premium/Fabric capacity, PPU, or Embedded workspace, a read-write XMLA endpoint,
+and the necessary license/access permissions; ordinary shared-capacity Pro
+does not provide that write endpoint. Alternatively plan a controlled policy
+change/rebuild that actually reloads the required history (with cost and report
+impact reviewed). Service "Refresh now" still applies the incremental policy;
+calling it a "full refresh" does not guarantee all historical rows reload.
+
+Microsoft lists Import incremental refresh support for Pro, PPU, Premium and
+Embedded models. Real-time DirectQuery has additional requirements and is
+intentionally excluded here. Workspace sharing/viewer and capacity licensing
+still apply; confirm your tenant's current entitlement with its administrator.
+
+Official references (reviewed September 23, 2026)
+[1] Snowflake connector, Import selection, Navigator, implementation 2.0:
+https://learn.microsoft.com/en-us/power-query/connectors/snowflake
+[2] Date/Time parameters, half-open filter, policy and first service refresh:
+https://learn.microsoft.com/en-us/power-bi/connect-data/incremental-refresh-configure
+[3] Supported plans, rolling windows and source-side folding verification:
+https://learn.microsoft.com/en-us/power-bi/connect-data/incremental-refresh-overview
+[4] Partition management and selective refresh:
+https://learn.microsoft.com/en-us/power-bi/connect-data/incremental-refresh-xmla
+[5] XMLA workspace support, licensing and read-write requirements:
+https://learn.microsoft.com/en-us/fabric/enterprise/powerbi/service-premium-connect-tools
+[6] Snowflake timestamp semantics:
+https://docs.snowflake.com/en/sql-reference/data-types-datetime
+[7] Snowflake CTAS and deterministic MERGE:
+https://docs.snowflake.com/en/sql-reference/sql/create-table
+https://docs.snowflake.com/en/sql-reference/sql/merge
+
+Validation boundary: official documentation informed the templates. Local
+fixture/arithmetic checks are not Snowflake SQL execution or M evaluation.
+No credentials, Power BI service run, measured speedup, or query-history
+capture is supplied. Verify those in your own sandbox before making claims.

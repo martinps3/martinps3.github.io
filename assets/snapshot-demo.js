@@ -48,13 +48,13 @@
     s.push('<svg viewBox="0 0 ' + w + ' ' + h + '" width="100%" height="' + h +
            '" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, Inter, sans-serif">');
 
-    s.push('<text x="0" y="24" font-size="12" fill="#a4453a" font-weight="620">Reported</text>');
+    s.push('<text x="0" y="24" font-size="12" fill="#a4453a" font-weight="620">Rows</text>');
     s.push('<rect x="' + pad + '" y="8" width="' + scale(d.rows) + '" height="' + barH +
            '" rx="4" fill="#e0b9b0"/>');
     s.push('<text x="' + (pad + scale(d.rows) + 10) + '" y="26" font-size="13" font-weight="650" fill="#a4453a">' +
            fmt(d.rows) + '</text>');
 
-    s.push('<text x="0" y="70" font-size="12" fill="#2f6b46" font-weight="620">Actual</text>');
+    s.push('<text x="0" y="70" font-size="12" fill="#2f6b46" font-weight="620">Claims</text>');
     s.push('<rect x="' + pad + '" y="54" width="' + scale(d.distinct) + '" height="' + barH +
            '" rx="4" fill="#a8c9b5"/>');
     s.push('<text x="' + (pad + scale(d.distinct) + 10) + '" y="72" font-size="13" font-weight="650" fill="#2f6b46">' +
@@ -62,12 +62,12 @@
 
     var factor = d.distinct ? (d.rows / d.distinct) : 1;
     s.push('<line x1="' + pad + '" y1="96" x2="' + (w - 20) + '" y2="96" stroke="#e3e7ec"/>');
-    s.push('<text x="0" y="120" font-size="12" fill="#5b646e">Inflation</text>');
+    s.push('<text x="0" y="120" font-size="12" fill="#5b646e">Count ratio</text>');
     s.push('<text x="' + pad + '" y="120" font-size="13" font-weight="650" fill="' +
            (factor > 1.05 ? "#a4453a" : "#5b646e") + '">' + factor.toFixed(2) + '\u00d7</text>');
     s.push('<text x="' + (pad + 54) + '" y="120" font-size="12" fill="#8b949e">' +
-           (factor > 1.05 ? "every count and every total is wrong by this much"
-                          : "one snapshot only \u2014 nothing stacked yet") + '</text>');
+           (factor > 1.05 ? "snapshot rows per distinct claim"
+                          : "one snapshot per claim so far") + '</text>');
 
     s.push("</svg>");
     chart.innerHTML = s.join("");

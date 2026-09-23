@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="458" viewBox="0 0 880 458" role="img" aria-labelledby="title desc">
+  <title id="title">Follow a number through the model and the report</title>
+  <desc id="desc">Model metadata defines the average-charge DAX calculation. Report metadata defines a card bound to that measure, including its position and format. The resulting card displays 350 dollars. Review the expression, the binding and the rendered result separately.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0 0 L6 3 L0 6" fill="none" stroke="#647b8e" stroke-width="1.4"/></marker>
+  </defs>
+  <rect width="880" height="458" rx="12" fill="#f7f8f5"/>
+  <g font-family="Segoe UI, Arial, sans-serif">
+    <text x="32" y="37" font-size="12" font-weight="700" letter-spacing="1.5" fill="#526171">ONE NUMBER, TWO DEFINITIONS TO REVIEW</text>
+    <text x="32" y="70" font-size="24" font-weight="650" fill="#17283a">The measure calculates. The visual presents.</text>
+    <rect x="32" y="106" width="498" height="132" rx="8" fill="#edf3f8" stroke="#b8cad9"/>
+    <text x="52" y="134" font-size="12" font-weight="700" letter-spacing="1" fill="#456680">MODEL / TMDL</text>
+    <text x="52" y="163" font-family="Consolas, monospace" font-size="17" fill="#17283a">Average charge</text>
+    <text x="52" y="192" font-family="Consolas, monospace" font-size="16" fill="#17283a">DIVIDE([Total charge], [Shipment count])</text>
+    <text x="52" y="219" font-size="14" fill="#526171">Review the grain, denominator and filter behaviour.</text>
+    <rect x="32" y="258" width="498" height="132" rx="8" fill="#f7f0e4" stroke="#d9c7a8"/>
+    <text x="52" y="286" font-size="12" font-weight="700" letter-spacing="1" fill="#84602e">REPORT / PBIR</text>
+    <text x="52" y="315" font-family="Consolas, monospace" font-size="17" fill="#17283a">Card bound to [Average charge]</text>
+    <text x="52" y="344" font-size="16" fill="#17283a">Label, position, formatting and visual filters</text>
+    <text x="52" y="371" font-size="14" fill="#526171">Review the binding and the rendered page.</text>
+    <path d="M530 172 H565 V234 H606 M530 324 H565 V266 H606" fill="none" stroke="#647b8e" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <rect x="610" y="164" width="238" height="162" rx="8" fill="#fff" stroke="#c1cdd6"/>
+    <text x="631" y="195" font-size="14" fill="#526171">Average charge / shipment</text>
+    <text x="631" y="252" font-size="43" font-weight="650" fill="#17283a">$350</text>
+    <text x="631" y="291" font-size="14" fill="#526171">6 shipments · USD</text>
+    <text x="632" y="350" font-size="13" fill="#526171">Illustrated card, not a screenshot</text>
+    <text x="32" y="431" font-size="14" fill="#526171">For a measure-only fix, the report binding can stay unchanged while the displayed value changes.</text>
+  </g>
+</svg>

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Padel Rally Explorer | Martin Padilla Schekaiban</title>
+<meta name="description" content="A match-video experiment with synchronized player overlays, movement trails, court heatmaps and estimated distance.">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/padel.css">
+</head>
+<body class="padel-page">
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site"><div class="wrap">
+  <a class="name" href="index.html"><span class="brand-mark" aria-hidden="true">MP</span>Martin Padilla Schekaiban</a>
+  <nav aria-label="Main navigation"><a href="index.html#work">Work</a><a href="index.html#skills">Skills</a><a href="index.html#contact">About</a></nav>
+</div></header>
+<main class="wrap" id="main">
+  <a class="back" href="index.html#work">&larr; All writing &amp; projects</a>
+  <div class="pr-intro">
+    <div><p class="eyebrow">Sports analytics / Interactive experiment</p>
+      <h1>A rally. <span>Four stories.</span></h1>
+      <p>Explore selected rallies from the D&uuml;sseldorf P2 final. Follow the movement, jump to key moments, and compare the stories behind the points.</p>
+    </div>
+    <div class="pr-intro-note"><span>01 / PADEL RALLY EXPLORER</span><p>Match footage. Four player tracks.<br>A curated sample, not the whole story.</p></div>
+  </div>
+
+  <noscript><p>This explorer requires JavaScript. It runs entirely in your browser; the methodology below is available without JavaScript.</p></noscript>
+  <section class="pr-app" id="pr-app" aria-label="Padel Rally Explorer" hidden>
+    <div class="pr-topbar">
+      <div><span class="pr-live-dot" aria-hidden="true"></span><strong>D&Uuml;SSELDORF P2 / FINAL</strong><span class="pr-badge">Estimated tracking</span></div>
+      <div class="pr-view-actions"><button id="pr-replay" type="button" disabled>Replay rally</button><button id="pr-fullscreen" type="button" aria-pressed="false">Fullscreen</button></div>
+    </div>
+    <div class="pr-disclosure">Coello / Tapia vs. Stupaczuk / Sanz <span><span data-rally-frame-count>31</span> hand-marked frames &middot; no AI tracking</span></div>
+    <div class="pr-rally-nav">
+      <label for="pr-rally-select">Choose a rally excerpt<select id="pr-rally-select"></select></label>
+      <div><button id="pr-previous" type="button" disabled>Previous</button><button id="pr-next" type="button">Next rally</button></div>
+    </div>
+    <p class="pr-range-note" id="pr-range-note"></p>
+    <p id="pr-error" role="alert" hidden></p>
+    <div class="pr-visuals">
+      <section class="pr-stage-panel" aria-labelledby="pr-stage-title">
+        <div class="pr-panel-heading"><h2 id="pr-stage-title">Inside the point</h2><label><input type="checkbox" id="pr-overlays" checked> Player overlays</label></div>
+        <div class="pr-stage" id="pr-stage">
+          <video id="pr-video" playsinline muted preload="metadata" aria-label="Selected rally from the Dusseldorf P2 final" src="assets/padel-changing-sides.mp4"></video>
+          <canvas id="pr-overlay" width="1280" height="720" aria-hidden="true"></canvas>
+          <div class="pr-video-message" id="pr-video-message" role="status">Loading match footage...</div>
+          <span class="pr-stage-caption">MATCH FOOTAGE / ESTIMATED POSITIONS</span>
+        </div>
+        <div class="pr-stage-meta"><span>Hand-marked positions / interpolated between samples</span><span>10 &times; 20 m court</span></div>
+      </section>
+      <section class="pr-map-panel" aria-labelledby="pr-map-title">
+        <div class="pr-panel-heading"><h2 id="pr-map-title">Court coverage</h2><label><input type="checkbox" id="pr-heat" checked> Heatmap</label></div>
+        <canvas id="pr-map" width="440" height="880" aria-label="Top-down court: movement trails and time-weighted occupancy heatmap."></canvas>
+        <div class="pr-map-legend"><span>FAR END</span><span>NEAR END</span></div>
+        <p>Brighter areas = more time spent.<br>Heat is scaled per player, not across players.</p>
+      </section>
+    </div>
+    <div class="pr-transport">
+      <button id="pr-play" class="pr-primary" type="button" aria-label="Play rally" disabled>Play</button>
+      <div class="pr-scrubber"><label for="pr-time">Rally timeline <output id="pr-clock">0.0 / -- s</output></label><input type="range" id="pr-time" min="0" step="0.01" value="0" disabled></div>
+      <button id="pr-mute" type="button" aria-pressed="true" aria-label="Unmute match audio">Muted</button>
+      <label class="pr-speed">Speed<select id="pr-speed"><option value="0.5">0.5&times;</option><option value="1" selected>1&times;</option><option value="1.5">1.5&times;</option><option value="2">2&times;</option></select></label>
+    </div>
+    <div class="pr-moments" aria-label="Jump to a key moment"><span>KEY MOMENTS</span><div id="pr-moment-buttons"></div></div>
+    <p class="pr-moment-note" id="pr-moment-note" role="status"></p>
+    <div class="pr-player-heading"><h2>Movement, player by player</h2><button id="pr-all" type="button" aria-pressed="true">Show all players</button></div>
+    <div class="pr-players" id="pr-players"></div>
+    <p class="pr-metric-note" id="pr-metric-note"></p>
+    <p class="pr-playback-status" id="pr-playback-status" role="status"></p>
+    <section class="pr-recap" id="pr-recap" aria-labelledby="pr-recap-title" hidden>
+      <div class="pr-recap-heading"><div><p>EXCERPT COMPLETE</p><h2 id="pr-recap-title">Rally recap</h2></div><button id="pr-recap-next" type="button">Watch next rally</button></div>
+      <div class="pr-table-scroll" tabindex="0" role="region" aria-label="Rally recap statistics">
+        <table><caption id="pr-recap-caption">Estimated totals for this excerpt</caption><thead><tr><th scope="col">Player</th><th scope="col">Distance</th><th scope="col">Within 3 m of net</th><th scope="col">Share of time</th></tr></thead><tbody id="pr-recap-body"></tbody></table>
+      </div>
+      <p>Totals describe the entire selected excerpt, not a full point or official performance statistics.</p>
+    </section>
+  </section>
+
+  <section class="pr-match-summary" aria-labelledby="pr-match-title">
+    <div class="pr-match-heading"><div><p class="eyebrow">Across the curated sample</p><h2 id="pr-match-title">Match summary</h2></div><span class="pr-partial">Partial analysis</span></div>
+    <p>This summary combines only the annotated rally excerpts available above. It does not describe the full match, count points won, or extrapolate unreviewed footage.</p>
+    <div class="pr-coverage" id="pr-coverage"></div>
+    <div class="pr-table-scroll" tabindex="0" role="region" aria-label="Curated match sample statistics">
+      <table><caption>Estimated totals across analyzed excerpts only</caption><thead><tr><th scope="col">Player</th><th scope="col">Distance</th><th scope="col">Within 3 m of net</th><th scope="col">Share of time</th></tr></thead><tbody id="pr-match-body"></tbody></table>
+    </div>
+    <p class="pr-summary-note">Coverage is measured against the source video's running time, not active playing time.
+      Near-net time means estimated time within 3 m of the net on either side. The share is time-weighted across the analyzed excerpts.</p>
+  </section>
+
+  <section class="pr-method" aria-labelledby="pr-method-title">
+    <div><p class="eyebrow">Behind the numbers</p><h2 id="pr-method-title">Useful analytics start<br>with honest inputs.</h2><p>This is a small experiment in turning movement into a readable data story, not a certified performance measurement system.</p></div>
+    <div class="pr-method-copy">
+      <h3>One row means one moment, four positions.</h3>
+      <p>This excerpt uses <span data-rally-frame-count>31</span> manually estimated position samples spread across the clip. Court calibration
+        maps the marked floor positions onto a 10 &times; 20 m plane. The overlays follow those samples, not
+        an AI detector. Jumping players, motion blur, lens distortion and imprecise marks introduce error.</p>
+      <h3>Distance is an estimate, not ground truth.</h3>
+      <p>We sum straight-line distances between keyframes and interpolate between them. Sparse points miss detours;
+        inconsistent marks add jitter. There is no automatic smoothing or AI correction. The figures describe this
+        <span data-rally-duration>15</span>-second excerpt only, not the full point or match, and have not been independently validated.</p>
+      <h3>A heatmap of time, not annotation density.</h3>
+      <p>Interpolated positions are sampled every 0.25 seconds into 1 m cells, weighted by elapsed time. Each player's
+        brightness is scaled to their own busiest cell. This shows estimated occupancy, not a probability or a
+        cross-player intensity comparison. Trails and heatmaps accumulate up to the playhead.</p>
+      <h3>Net time and sample coverage.</h3>
+      <p>Near-net time is the portion of each interpolated movement segment within 3 m of the net.
+        Match totals add the non-overlapping excerpts, keeping player identities consistent; time between excerpts
+        contributes neither distance nor occupancy. A player can have zero time in this strictly defined zone.
+        Key-moment labels are editorial observations, not automatically detected shots.</p>
+      <h3>The footage and its limits.</h3>
+      <p>Only the three selected excerpts are hosted here, with their original broadcast branding intact.
+        The full source video is not distributed. No step counts, ball tracking, shot classification or official
+        player statistics are claimed.</p>
+      <p>Each curated excerpt can be 1&ndash;60 seconds long.
+        The catalog in <code>assets/padel-rally-data.js</code> records absolute source start times, excerpt durations,
+        published clip paths, complete position samples, court calibration and key moments. Playback starts at zero
+        in each trimmed clip; source timestamps still refer to the original recording. Keep excerpts chronological and non-overlapping.
+        Mark the entire new excerpt; do not stretch the existing paths to fit. Use a continuous 16:9 camera view without
+        cuts or zooms within each excerpt. Adding footage requires permission to publish it.</p>
+      <p><a href="assets/padel.js">Read the calculation engine</a> &middot; <a href="tests/padel.test.cjs">Read the automated checks</a></p>
+    </div>
+  </section>
+</main>
+<footer class="site"><div class="wrap"><a href="index.html#work">&larr; All writing &amp; projects</a></div></footer>
+<script src="assets/padel.js"></script>
+<script src="assets/padel-rally-data.js"></script>
+<script src="assets/padel-ui.js"></script>
+</body>
+</html>
